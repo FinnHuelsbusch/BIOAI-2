@@ -1,4 +1,6 @@
+#pragma once
 #include <iostream>
+#include <vector>
  
 using namespace std;
  
@@ -24,7 +26,17 @@ struct Problem_Instance {
     int nurse_capacity;
     float benchmark;
     Depot depot;
-    std::vector<Patient> patients;
+    // hashmap with patient id as key and patient as value
+    std::unordered_map<int, Patient> patients;
     // travel time matrix
     std::vector<std::vector<double>> travel_time;
 }; 
+
+typedef std::vector<std::vector<int>> Genome;
+
+struct Individual {
+    Genome genome; 
+    double fitness;
+}; 
+
+typedef std::vector<Individual> population;

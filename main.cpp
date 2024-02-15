@@ -3,6 +3,7 @@
 #include "nlohmann/json.hpp"
 #include "structures.h"
 #include <string>
+#include "SGA.cpp"
 
 using json = nlohmann::json;
 
@@ -20,26 +21,29 @@ Problem_Instance load_instance(const std::string& filename) {
     // load the patients
     const int number_of_patients = data["patients"].size();
     std::cout << "Number of patients: " << number_of_patients << std::endl;
-    std::vector<Patient> patients(number_of_patients); 
+    std::unordered_map<int, Patient> patients;
+    patients.reserve(number_of_patients);
     for (const auto& entry : data["patients"].items()) {
         const auto& patient_data = entry.value();
-        patients.push_back({
+        patients.insert({std::stoi(entry.key()), {
             std::stoi(entry.key()),
-            patient_data["x_coord"],
-            patient_data["y_coord"],
             patient_data["demand"],
             patient_data["start_time"],
             patient_data["end_time"],
-            patient_data["care_time"]
-        });
+            patient_data["care_time"],
+            patient_data["x_coord"],
+            patient_data["y_coord"]
+        }});
     }
     // load the travel time matrix
     const int number_of_nurses = data["nbr_nurses"];
     const int nurse_capacity = data["capacity_nurse"];
     const float benchmark = data["benchmark"];
-    std::vector<std::vector<double>> travel_time_matrix(number_of_patients+1, std::vector<double>(number_of_patients+1));
+    std::vector<std::vector<double>> travel_time_matrix; 
+    travel_time_matrix.reserve(number_of_patients+1);
     for(const auto& row : data["travel_times"]){
-        std::vector<double> helper(number_of_patients+1);
+        std::vector<double> helper;
+        helper.reserve(number_of_patients+1);
         for(const double& travel_time: row){
             helper.push_back(travel_time); 
         }
@@ -55,15 +59,14 @@ Problem_Instance load_instance(const std::string& filename) {
         patients, 
         travel_time_matrix
     };
+    std::cout << "Done loading instance: " << instance_name << std::endl;
     return problem_instance;
 }
 
 int main()
 {
-    
-    Problem_Instance problem_instance = load_instance("train_0.json");
-
-    
-
+    std::unordered_map<int, std::string> myMap;
+    Problem_Instance problem_instance = load_instance("train_0 copy.json");
+    SGA(problem_instance, -1, 100, 100, 0.01, 0.8, 5, 5);
     return 0;
 }
