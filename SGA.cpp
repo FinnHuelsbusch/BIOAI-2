@@ -92,7 +92,8 @@ double evaluate_genome(Genome genome, Problem_Instance problem_instance){
         combined_trip_time += nurse_trip_time;
 
     }
-    return -combined_trip_time - (combined_penalty * 100000);
+    double fitness = -combined_trip_time - (combined_penalty * 100000.0);
+    return fitness;
 }
 
 Population initialize_random_population(Problem_Instance problem_instance, Config config){
