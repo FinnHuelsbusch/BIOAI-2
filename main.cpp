@@ -81,7 +81,6 @@ int main()
         100, 
         0.1, 
         0.9, 
-        -1, 
         true, 
         roulette_wheel_selection, 
         order1Crossover, 

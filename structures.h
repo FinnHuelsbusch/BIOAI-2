@@ -52,7 +52,6 @@ struct Config {
     int number_of_generations;
     double mutation_rate;
     double crossover_rate;    
-    int seed;
     bool initial_population_distirbute_patients_equally; 
     parent_selection_function parent_selection;
     crossover_function crossover;
