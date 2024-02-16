@@ -102,28 +102,23 @@ int main()
     std::cout << "Handcrafted genome is valid: " << isSolutionValid(genome, problem_instance) << std::endl;
     std::cout << "Handcrafted genome fitness: " << evaluate_genome(genome, problem_instance) << std::endl;
     std::cout << "Handcrafted genome total travel time: " << getTotalTravelTime(genome, problem_instance) << std::endl;
-    if (getTotalTravelTime(genome, problem_instance) < problem_instance.benchmark) {
-        std::cout << "Handcrafted genome is valid and better than benchmark by " << problem_instance.benchmark - getTotalTravelTime(genome, problem_instance) << std::endl;
-    }
-    else {
-        std::cout << "Handcrafted genome is valid but worse than benchmark by " << getTotalTravelTime(genome, problem_instance) - problem_instance.benchmark << std::endl;
-    }
+    function_parameters roulette_wheel_selection_configuration_params;
+    function_parameters tournament_selection_configuration_params = {{"tournament_size", 5}};
+    parent_selection_configuration roulette_wheel_selection_configuration = {roulette_wheel_selection, roulette_wheel_selection_configuration_params};
+    crossover_configuration order1Crossover_configuration = {{order1Crossover, 1.0}};
+    function_parameters reassignOnePatient_params;
+    mutation_configuration reassignOnePatient_configuration = {{reassignOnePatient, reassignOnePatient_params, 1.0}};
+    function_parameters full_replacement_params;
+    survivor_selection_configuration full_replacement_configuration = {full_replacement, full_replacement_params};
+    
+    
 
-    // instantiate the random number generator
-    RandomGenerator& rng = RandomGenerator::getInstance();    
-    rng.seedGenerator(4711); 
-    // load the problem instance
-    Config config = {
-        100, 
-        1000, 
-        0.6, 
-        0.8, 
-        true, 
-        roulette_wheel_selection, 
-        order1Crossover, 
-        reassignOnePatient, 
-        full_replacement
-    };
+    Config config = Config(100, 100, true, 
+        roulette_wheel_selection_configuration, 
+        order1Crossover_configuration, 
+        reassignOnePatient_configuration, 
+        full_replacement_configuration
+    );
     SGA(problem_instance,config);
     return 0;
 }

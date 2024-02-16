@@ -7,7 +7,7 @@
 #include "RandomGenerator.h"
 
 
-Population roulette_wheel_selection(const Population& population) {
+Population roulette_wheel_selection(const Population& population, function_parameters& parameters) {
     Population parents;
     std::vector<double> fitnessValues;
     for (int i = 0; i < population.size(); i++) {
@@ -42,6 +42,21 @@ Population roulette_wheel_selection(const Population& population) {
                 break;
             }
         }
+    }
+    return parents;
+}
+
+Population tournament_selection(const Population& population, function_parameters& parameters) {
+    int tournamentSize = std::get<int>(parameters.at("tournament_size"));
+    Population parents;
+    RandomGenerator& rng = RandomGenerator::getInstance();
+    for (int i = 0; i < population.size(); i++) {
+        std::vector<Individual> tournament;
+        for (int j = 0; j < tournamentSize; j++) {
+            int index = rng.generateRandomInt(0, population.size() - 1);
+            tournament.push_back(population[index]);
+        }
+        parents.push_back(*std::max_element(tournament.begin(), tournament.end(), compareByFitness));
     }
     return parents;
 }

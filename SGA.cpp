@@ -157,7 +157,53 @@ double getTotalTravelTime(const Genome& genome, const Problem_Instance& problem_
 }
 
 
+Population applyCrossover(Population& parents, std::vector<std::pair<crossover_function, double>>& crossover, Problem_Instance& problem_instance){
+    Population children = std::vector<Individual>();
+    children.reserve(parents.size());
+    for (Individual parent : parents) {
+        children.push_back(parent);
+    }
+    RandomGenerator rng = RandomGenerator::getInstance();
 
+    for (std::pair<crossover_function, double> crossover_pair : crossover) {
+        crossover_function crossover_function = crossover_pair.first;
+        int number_of_crossovers = std::ceil(parents.size() * crossover_pair.second);
+
+        for (int i = 0; i < number_of_crossovers; i++) {
+            int individual_index_1 = rng.generateRandomInt(0, parents.size() - 1);
+            int individual_index_2 = rng.generateRandomInt(0, parents.size() - 1);
+            while (individual_index_1 == individual_index_2) {
+                individual_index_2 = rng.generateRandomInt(0, parents.size() - 1);
+            }
+            Individual individual_1 = parents[individual_index_1];
+            Individual individual_2 = parents[individual_index_2];
+            std::pair<Genome, Genome> children_genomes = crossover_function(individual_1.genome, individual_2.genome);
+            Individual child_1 = {children_genomes.first, evaluate_genome(children_genomes.first, problem_instance)};
+            Individual child_2 = {children_genomes.second, evaluate_genome(children_genomes.second, problem_instance)};
+            children[individual_index_1] = child_1;
+            children[individual_index_2] = child_2;       
+        }
+    }
+    return children;
+}
+
+Population applyMutation(Population& population, std::vector<std::tuple<mutation_function, function_parameters&, double>>& mutation, Problem_Instance& problem_instance){
+    RandomGenerator rng = RandomGenerator::getInstance();
+    for (std::tuple<mutation_function, function_parameters, double> mutation_tuple : mutation) {
+        mutation_function mutation_function = std::get<0>(mutation_tuple);
+        function_parameters parameters = std::get<1>(mutation_tuple);
+        double mutation_rate = std::get<2>(mutation_tuple);
+        int number_of_mutations = std::ceil(population.size() * mutation_rate);
+        for (int i = 0; i < number_of_mutations; i++) {
+            int individual_index = rng.generateRandomInt(0, population.size() - 1);
+            Individual individual = population[individual_index];
+            Genome mutated_genome = mutation_function(individual.genome, parameters);
+            Individual mutated_individual = {mutated_genome, evaluate_genome(mutated_genome, problem_instance)};
+            population[individual_index] = mutated_individual;
+        }
+    }
+    return population;
+}
 
 void SGA(Problem_Instance& problem_instance, Config& config){
 
@@ -172,7 +218,7 @@ void SGA(Problem_Instance& problem_instance, Config& config){
 
         // Parent selection 
         std::cout << "Parent selection";
-        Population parents = config.parent_selection(pop);
+        Population parents = config.parent_selection.first(pop, config.parent_selection.second);
         // Average parent fitness
         double average_parent_fitness = std::accumulate(parents.begin(), parents.end(), 0.0, [](double sum, Individual individual) {
             return sum + individual.fitness;
@@ -180,36 +226,13 @@ void SGA(Problem_Instance& problem_instance, Config& config){
         std::cout << "Generation " << current_generation << " average parent fitness: " << average_parent_fitness << std::endl;
         // Crossover
         std::cout << "Crossover";
-        Population children = std::vector<Individual>();
-        children.reserve(config.population_size);
-        int crossovers = config.crossover_rate * config.population_size / 2;
-        for (int i = 0; i < crossovers; i++) {
-            
-            
-            int parent1_index = rng.generateRandomInt(0, parents.size() - 1);
-            int parent2_index = rng.generateRandomInt(0, parents.size() - 1);
-            Individual parent1 = parents[parent1_index];
-            Individual parent2 = parents[parent2_index];
-            std::pair<Genome, Genome> children_genomes = config.crossover(parent1.genome, parent2.genome);
-            Individual child1 = {children_genomes.first, evaluate_genome(children_genomes.first, problem_instance)};
-            Individual child2 = {children_genomes.second, evaluate_genome(children_genomes.second, problem_instance)};
-            // replace the parents with the children
-            children.push_back(child1);
-            children.push_back(child2);
-        }
+        Population children = applyCrossover(parents, config.crossover, problem_instance);
         // Mutation
         std::cout << "Mutation";
-        int mutations = config.mutation_rate * config.population_size;
-        for (int i = 0; i < mutations; i++) {
-            int child_index = rng.generateRandomInt(0, children.size() - 1);
-            Individual child = children[child_index];
-            Genome mutated_genome = config.mutation(child.genome);
-            Individual mutated_child = {mutated_genome, evaluate_genome(mutated_genome, problem_instance)};
-            children[child_index] = mutated_child;
-        }
+        children = applyMutation(children, config.mutation, problem_instance);
         // Survivor selection
         std::cout << "Survivor selection";
-        pop = config.survivor_selection(pop, children);
+        pop = config.survivor_selection.first(pop, children, config.survivor_selection.second);
         pop = sort_population(pop, false);
         std::cout << "Generation " << current_generation << "\nBest fitness: " << pop[0].fitness << "\nWorst fitness: " << pop[pop.size()-1].fitness << std::endl;
         

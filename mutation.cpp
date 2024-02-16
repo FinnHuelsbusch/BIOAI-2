@@ -7,13 +7,13 @@
 #include "utils.cpp"
 #include "RandomGenerator.h"
 
-Genome reassignOnePatient(Genome& genome) {
+Genome reassignOnePatient(Genome& genome, function_parameters& parameters) {
     
     RandomGenerator& rng = RandomGenerator::getInstance();
     int source_nurse = rng.generateRandomInt(0, genome.size() - 1);
     // check that the source has at least one patient
     if (genome[source_nurse].size() == 0) {
-        return reassignOnePatient(genome);
+        return reassignOnePatient(genome, parameters);
     }
     int destination_nurse = rng.generateRandomInt(0, genome.size() - 1);
     int patient_index = rng.generateRandomInt(0, genome[source_nurse].size() - 1);
