@@ -24,8 +24,7 @@ bool isSolutionValid(Genome genome, Problem_Instance problem_instance){
                 total_time_spent += problem_instance.travel_time[previous_patient_id][patient_id];
             }
             if (total_time_spent < problem_instance.patients[patient_id].start_time) {
-                std::cout << "Patient " << patient_id << " is visited too early" << std::endl;
-                return false;
+                total_time_spent = problem_instance.patients[patient_id].start_time;
             }
             total_time_spent += problem_instance.patients[patient_id].care_time;
             if (total_time_spent > problem_instance.patients[patient_id].end_time) {
@@ -71,7 +70,7 @@ double evaluate_genome(Genome genome, Problem_Instance problem_instance){
                 nurse_trip_time += problem_instance.travel_time[previous_patient_id][patient_id];
             }
             if (nurse_trip_time < problem_instance.patients[patient_id].start_time) {
-                combined_penalty += problem_instance.patients[patient_id].start_time - nurse_trip_time; 
+                nurse_trip_time = problem_instance.patients[patient_id].start_time;
             }
             nurse_trip_time += problem_instance.patients[patient_id].care_time;
             if (nurse_trip_time > problem_instance.patients[patient_id].end_time) {
@@ -93,7 +92,7 @@ double evaluate_genome(Genome genome, Problem_Instance problem_instance){
         combined_trip_time += nurse_trip_time;
 
     }
-    return -combined_trip_time - combined_penalty *100; 
+    return -combined_trip_time - combined_penalty * 1000; 
 }
 
 Population initialize_random_population(Problem_Instance problem_instance, Config config){
@@ -132,6 +131,27 @@ Population initialize_random_population(Problem_Instance problem_instance, Confi
 
         }
     return pop;
+
+}
+
+double getTotalTravelTime(const Genome& genome, const Problem_Instance& problem_instance){
+    double total_travel_time = 0;
+    for (Journey nurse_journey : genome) {
+        for (int i = 0; i < nurse_journey.size(); i++) {
+            int patient_id = nurse_journey[i] ;
+            int previous_patient_id = nurse_journey[i - 1];
+            if (i == 0) {
+                total_travel_time += problem_instance.travel_time[0][patient_id];
+            }
+            else {
+                total_travel_time += problem_instance.travel_time[previous_patient_id][patient_id];
+            }
+        }
+        // add the driving time from the last patient to the depot if there is at least one patient
+        if (nurse_journey.size() > 0) {
+            total_travel_time += problem_instance.travel_time[nurse_journey[nurse_journey.size()-1]][0];
+        }
+    }
 
 }
 
@@ -189,9 +209,23 @@ void SGA(Problem_Instance& problem_instance, Config& config){
         // Survivor selection
         std::cout << "Survivor selection";
         pop = config.survivor_selection(pop, children);
-        pop = sort_population(pop);
+        pop = sort_population(pop, false);
         std::cout << "Generation " << current_generation << " best fitness: " << pop[0].fitness << std::endl;
         
+    }
+    bool valid = isSolutionValid(pop[0].genome, problem_instance);
+    if (valid) {
+        std::cout << "The solution is valid" << std::endl;
+    }
+    else {
+        std::cout << "The solution is invalid" << std::endl;
+    }
+    double total_travel_time = getTotalTravelTime(pop[0].genome, problem_instance);
+    if (total_travel_time < problem_instance.benchmark) {
+        std::cout << "The solution is " << problem_instance.benchmark - total_travel_time << " time units better than the benchmark" << std::endl;
+    }
+    else {
+        std::cout << "The solution is " << total_travel_time - problem_instance.benchmark << " time units worse than the benchmark" << std::endl;
     }
 
     
