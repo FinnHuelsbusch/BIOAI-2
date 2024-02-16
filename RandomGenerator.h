@@ -22,6 +22,15 @@ public:
     double generateRandomDouble(double min, double max);
 
     template <typename T>
-    void shuffle(std::vector<T> &elements);
+    void shuffle(std::vector<T> &elements)
+    {
+        if (!isSeeded)
+        {
+            std::random_device rd;
+            seedGenerator(rd());
+        }
+
+        std::shuffle(elements.begin(), elements.end(), generator);
+    }
 };
 

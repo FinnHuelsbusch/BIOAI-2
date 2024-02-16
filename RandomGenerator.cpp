@@ -46,14 +46,4 @@ double RandomGenerator::generateRandomDouble(double min, double max)
     return distribution(generator);
 }
 
-template <typename T>
-void RandomGenerator::shuffle(std::vector<T> &elements)
-{
-    if (!isSeeded)
-    {
-        std::random_device rd;
-        seedGenerator(rd());
-    }
-
-    std::shuffle(elements.begin(), elements.end(), generator);
-}
+template void RandomGenerator::shuffle(std::vector<int> &);
