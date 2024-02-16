@@ -32,11 +32,36 @@ struct Problem_Instance {
     std::vector<std::vector<double>> travel_time;
 }; 
 
-typedef std::vector<std::vector<int>> Genome;
+typedef std::vector<int> Journey;
+
+typedef std::vector<Journey> Genome;
 
 struct Individual {
     Genome genome; 
     double fitness;
 }; 
 
-typedef std::vector<Individual> population;
+typedef std::vector<Individual> Population;
+typedef Population (*parent_selection_function)(Population);
+typedef std::pair<Genome, Genome> (*crossover_function)(Genome, Genome);
+typedef Genome (*mutation_function)(Genome);
+typedef Population (*survivor_selection_function)(Population, Population);
+
+struct Config {
+    int population_size;
+    int number_of_generations;
+    double mutation_rate;
+    double crossover_rate;    
+    int seed;
+    bool initial_population_distirbute_patients_equally; 
+    parent_selection_function parent_selection;
+    crossover_function crossover;
+    mutation_function mutation;
+    survivor_selection_function survivor_selection;
+};
+
+
+
+
+
+

@@ -1,28 +1,22 @@
 #include "structures.h"
+#include "crossover.cpp"
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include <random>
+#include "utils.cpp"
 
-void print_genome(Genome genome){
-    for (int i = 0; i < genome.size(); i++) {
-        std::cout << "Nurse " << i << " has patients: ";
-        for (int j = 0; j < genome[i].size(); j++) {
-            std::cout << genome[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
-}
+
 
 bool isSolutionValid(Genome genome, Problem_Instance problem_instance){
 
     for (int nurse_id = 0; nurse_id < genome.size(); nurse_id++) {
-        std::vector<int> nurse = genome[nurse_id];
+        Journey nurse_journey = genome[nurse_id];
         int total_time_spent = 0;
         int total_demand = 0;
-        for (int j = 0; j < nurse.size(); j++) {
-            int patient_id = nurse[j] ;
-            int previous_patient_id = nurse[j - 1];
+        for (int j = 0; j < nurse_journey.size(); j++) {
+            int patient_id = nurse_journey[j] ;
+            int previous_patient_id = nurse_journey[j - 1];
             if (j == 0) {
                 total_time_spent += problem_instance.travel_time[0][patient_id];
             }
@@ -45,8 +39,12 @@ bool isSolutionValid(Genome genome, Problem_Instance problem_instance){
             }
         }
         // add the driving time from the last patient to the depot if there is at least one patient
-        if (nurse.size() > 0) {
-            total_time_spent += problem_instance.travel_time[nurse[nurse.size()-1]][0];
+        if (nurse_journey.size() > 0) {
+            total_time_spent += problem_instance.travel_time[nurse_journey[nurse_journey.size()-1]][0];
+        }
+        if (total_time_spent > problem_instance.depot.return_time) {
+            std::cout << "Nurse " << nurse_id << " exceeds the return time" << std::endl;
+            return false;
         }
         if (problem_instance.nurse_capacity > problem_instance.nurse_capacity) {
             std::cout << "Nurse " << nurse_id << " exceeds the capacity" << std::endl;
@@ -60,12 +58,12 @@ double evaluate_genome(Genome genome, Problem_Instance problem_instance){
     int combined_penalty = 0;
     int combined_trip_time = 0;
     for (int nurse_id = 0; nurse_id < genome.size(); nurse_id++) {
-        std::vector<int> nurse = genome[nurse_id];
+        Journey nurse_journey = genome[nurse_id];
         int nurse_trip_time = 0;
         int nurse_used_capacity = 0;
-        for (int j = 0; j < nurse.size(); j++) {
-            int patient_id = nurse[j] ;
-            int previous_patient_id = nurse[j - 1];
+        for (int j = 0; j < nurse_journey.size(); j++) {
+            int patient_id = nurse_journey[j] ;
+            int previous_patient_id = nurse_journey[j - 1];
             if (j == 0) {
                 nurse_trip_time += problem_instance.travel_time[0][patient_id];
             }
@@ -86,8 +84,11 @@ double evaluate_genome(Genome genome, Problem_Instance problem_instance){
             }
         }
         // add the driving time from the last patient to the depot if there is at least one patient
-        if (nurse.size() > 0) {
-            nurse_trip_time += problem_instance.travel_time[nurse[nurse.size()-1]][0];
+        if (nurse_journey.size() > 0) {
+            nurse_trip_time += problem_instance.travel_time[nurse_journey[nurse_journey.size()-1]][0];
+        }
+        if (nurse_trip_time > problem_instance.depot.return_time) {
+            combined_penalty += nurse_trip_time - problem_instance.depot.return_time;
         }
         combined_trip_time += nurse_trip_time;
 
@@ -95,16 +96,16 @@ double evaluate_genome(Genome genome, Problem_Instance problem_instance){
     return -combined_trip_time - combined_penalty *100; 
 }
 
-population initialize_random_population(int population_size, Problem_Instance problem_instance, bool distribute_equally, int seed = -1){
-    population pop = std::vector<Individual>();
-    pop.reserve(population_size);
+Population initialize_random_population(Problem_Instance problem_instance, Config config){
+    Population pop = std::vector<Individual>();
+    pop.reserve(config.population_size);
     // Seed the random number generator
-    if (seed == -1) {
+    if (config.seed == -1) {
         std::random_device rd;
-        seed = rd();
+        config.seed = rd();
     }
-    std::mt19937 g(seed);
-    for (int i = 0; i < population_size; i++) {
+    std::mt19937 g(config.seed);
+    for (int i = 0; i < config.population_size; i++) {
        // Generate patient
         std::vector<int> IDs = std::vector<int>();
         IDs.reserve(problem_instance.patients.size());
@@ -121,7 +122,7 @@ population initialize_random_population(int population_size, Problem_Instance pr
         // pop from IDs until empty
         for (int i = 0; i < problem_instance.patients.size(); i++) {
             int id = IDs[i];
-            if (distribute_equally) {
+            if (config.initial_population_distirbute_patients_equally) {
                 int nurse_id = i % problem_instance.number_of_nurses;
                 genome[nurse_id].push_back(id);
             } else {
@@ -138,63 +139,73 @@ population initialize_random_population(int population_size, Problem_Instance pr
 
 }
 
-pair<Genome, Genome> crossover(Genome parent1, Genome parent2, float crossover_rate, int seed = -1){
-    // Seed the random number generator
-    if (seed == -1) {
-        std::random_device rd;
-        seed = rd();
-    }
-    std::mt19937 g(seed);
-    std::uniform_real_distribution<float> distribution(0.0, 1.0);
-    if (distribution(g) > crossover_rate) {
-        return {parent1, parent2};
-    }
-    // Create the children
-    Genome child1 = std::vector<std::vector<int>>(parent1.size());
-    Genome child2 = std::vector<std::vector<int>>(parent2.size());
-    for (int i = 0; i < parent1.size(); i++) {
-        std::vector<int> nurse1 = parent1[i];
-        std::vector<int> nurse2 = parent2[i];
-        std::uniform_int_distribution<int> distribution(0, nurse1.size());
-        int crossover_point = distribution(g);
-        for (int j = 0; j < crossover_point; j++) {
-            child1[i].push_back(nurse1[j]);
-            child2[i].push_back(nurse2[j]);
-        }
-        for (int j = crossover_point; j < nurse1.size(); j++) {
-            child1[i].push_back(nurse2[j]);
-            child2[i].push_back(nurse1[j]);
-        }
-    }
-    return {child1, child2};
-}
 
 
 
+void SGA(Problem_Instance problem_instance, Config config){
 
-void SGA(Problem_Instance problem_instance, int seed = -1, int number_of_generations = 100, int population_size = 100, float mutation_rate = 0.01, float crossover_rate = 0.8, int tournament_size = 5, int elite_size = 5){
-    // print fitness of the population
-    int sum = 0; 
-    while (sum == 0)
-    {
-        population pop = initialize_random_population(population_size, problem_instance, true, seed);
-        for (int current_generation = 0; current_generation < number_of_generations; current_generation++) {
-            // Sort the population by fitness
-            std::sort(pop.begin(), pop.end(), [](Individual a, Individual b) {
-                return a.fitness > b.fitness;
-            });
-            // Print the best fitness
-            std::cout << "Generation " << current_generation << " best fitness: " << pop[0].fitness << std::endl;
-            // Create the new population
-            population new_pop = std::vector<Individual>();
-            new_pop.reserve(population_size);
-            // Elitism
-            for (int i = 0; i < elite_size; i++) {
-                new_pop.push_back(pop[i]);
+    Population pop = initialize_random_population(problem_instance, config);
+    for (int current_generation = 0; current_generation < config.number_of_generations; current_generation++) {
+        // Average fitness
+        double average_fitness = std::accumulate(pop.begin(), pop.end(), 0.0, [](double sum, Individual individual) {
+            return sum + individual.fitness;
+        }) / pop.size();
+        std::cout << "Generation " << current_generation << " average population fitness: " << average_fitness << std::endl;
+
+        // Parent selection 
+        std::cout << "Parent selection";
+        Population parents = config.parent_selection(pop);
+        // Average parent fitness
+        double average_parent_fitness = std::accumulate(parents.begin(), parents.end(), 0.0, [](double sum, Individual individual) {
+            return sum + individual.fitness;
+        }) / parents.size();
+        std::cout << "Generation " << current_generation << " average parent fitness: " << average_parent_fitness << std::endl;
+        // Crossover
+        std::cout << "Crossover";
+        Population children = std::vector<Individual>();
+        children.reserve(config.population_size);
+        int crossovers = config.crossover_rate * config.population_size / 2;
+        for (int i = 0; i < crossovers; i++) {
+            if (config.seed == -1) {
+                std::random_device rd;
+                config.seed = rd();
             }
-            // Crossover
-            
-
+            std::mt19937 g(config.seed);
+            std::uniform_int_distribution<int> distribution(0, parents.size() - 1);
+            int parent1_index = distribution(g);
+            int parent2_index = distribution(g);
+            Individual parent1 = parents[parent1_index];
+            Individual parent2 = parents[parent2_index];
+            std::pair<Genome, Genome> children_genomes = config.crossover(parent1.genome, parent2.genome);
+            Individual child1 = {children_genomes.first, evaluate_genome(children_genomes.first, problem_instance)};
+            Individual child2 = {children_genomes.second, evaluate_genome(children_genomes.second, problem_instance)};
+            // replace the parents with the children
+            children.push_back(child1);
+            children.push_back(child2);
+        }
+        // Mutation
+        std::cout << "Mutation";
+        int mutations = config.mutation_rate * config.population_size;
+        for (int i = 0; i < mutations; i++) {
+            if (config.seed == -1) {
+                std::random_device rd;
+                config.seed = rd();
+            }
+            std::mt19937 g(config.seed);
+            std::uniform_int_distribution<int> distribution(0, children.size() - 1);
+            int child_index = distribution(g);
+            Individual child = children[child_index];
+            Genome mutated_genome = config.mutation(child.genome);
+            Individual mutated_child = {mutated_genome, evaluate_genome(mutated_genome, problem_instance)};
+            children[child_index] = mutated_child;
+        }
+        // Survivor selection
+        std::cout << "Survivor selection";
+        pop = config.survivor_selection(pop, children);
+        pop = sort_population(pop);
+        std::cout << "Generation " << current_generation << " best fitness: " << pop[0].fitness << std::endl;
+        
     }
+
     
 }

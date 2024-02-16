@@ -4,6 +4,11 @@
 #include "structures.h"
 #include <string>
 #include "SGA.cpp"
+#include "crossover.cpp"
+#include "mutation.cpp"
+#include "survivorSelection.cpp"
+#include "parentSelection.cpp"
+
 
 using json = nlohmann::json;
 
@@ -66,7 +71,19 @@ Problem_Instance load_instance(const std::string& filename) {
 int main()
 {
     std::unordered_map<int, std::string> myMap;
-    Problem_Instance problem_instance = load_instance("train_0 copy.json");
-    SGA(problem_instance, -1, 100, 100, 0.01, 0.8, 5, 5);
+    Problem_Instance problem_instance = load_instance("train_0.json");
+    Config config = {
+        100, 
+        100, 
+        0.1, 
+        0.9, 
+        -1, 
+        true, 
+        roulette_wheel_selection, 
+        order1Crossover, 
+        reassignOnePatient, 
+        full_replacement
+    };
+    SGA(problem_instance,config);
     return 0;
 }
