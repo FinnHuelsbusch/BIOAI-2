@@ -1,5 +1,5 @@
 #include "structures.h"
 
-Population full_replacement(Population parents, Population children) {
+Population full_replacement(const Population& parents, const Population& children) {
     return children;
 }

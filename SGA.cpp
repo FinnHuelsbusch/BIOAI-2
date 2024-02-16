@@ -138,7 +138,7 @@ Population initialize_random_population(Problem_Instance problem_instance, Confi
 
 
 
-void SGA(Problem_Instance problem_instance, Config config){
+void SGA(Problem_Instance& problem_instance, Config& config){
 
     Population pop = initialize_random_population(problem_instance, config);
     RandomGenerator& rng = RandomGenerator::getInstance();

@@ -7,7 +7,7 @@
 
 
 
-std::pair<Genome, Genome> order1Crossover(Genome parent1, Genome parent2) {
+std::pair<Genome, Genome> order1Crossover(const Genome& parent1, const Genome& parent2) {
     
     std::vector<int> parent1_flat = flatten_genome(parent1);
     std::vector<int> parent2_flat = flatten_genome(parent2);

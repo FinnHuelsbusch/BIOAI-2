@@ -7,7 +7,7 @@
 #include "RandomGenerator.h"
 
 
-Population roulette_wheel_selection(Population population) {
+Population roulette_wheel_selection(const Population& population) {
     Population parents;
     std::vector<double> fitnessValues;
     for (int i = 0; i < population.size(); i++) {

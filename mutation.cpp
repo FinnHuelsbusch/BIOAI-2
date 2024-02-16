@@ -7,7 +7,7 @@
 #include "utils.cpp"
 #include "RandomGenerator.h"
 
-Genome reassignOnePatient(Genome genome) {
+Genome reassignOnePatient(Genome& genome) {
     
     RandomGenerator& rng = RandomGenerator::getInstance();
     int source_nurse = rng.generateRandomInt(0, genome.size() - 1);

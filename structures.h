@@ -42,10 +42,10 @@ struct Individual {
 }; 
 
 typedef std::vector<Individual> Population;
-typedef Population (*parent_selection_function)(Population);
-typedef std::pair<Genome, Genome> (*crossover_function)(Genome, Genome);
-typedef Genome (*mutation_function)(Genome);
-typedef Population (*survivor_selection_function)(Population, Population);
+typedef Population (*parent_selection_function)(const Population&);
+typedef std::pair<Genome, Genome> (*crossover_function)(const Genome&, const Genome&);
+typedef Genome (*mutation_function)(Genome&);
+typedef Population (*survivor_selection_function)(const Population&, const Population&);
 
 struct Config {
     int population_size;
