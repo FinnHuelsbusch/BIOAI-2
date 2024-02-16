@@ -92,7 +92,7 @@ double evaluate_genome(Genome genome, Problem_Instance problem_instance){
         combined_trip_time += nurse_trip_time;
 
     }
-    return -combined_trip_time - combined_penalty * 1000; 
+    return -combined_trip_time - (combined_penalty * 100000);
 }
 
 Population initialize_random_population(Problem_Instance problem_instance, Config config){
@@ -152,7 +152,7 @@ double getTotalTravelTime(const Genome& genome, const Problem_Instance& problem_
             total_travel_time += problem_instance.travel_time[nurse_journey[nurse_journey.size()-1]][0];
         }
     }
-
+    return total_travel_time;
 }
 
 
@@ -210,7 +210,7 @@ void SGA(Problem_Instance& problem_instance, Config& config){
         std::cout << "Survivor selection";
         pop = config.survivor_selection(pop, children);
         pop = sort_population(pop, false);
-        std::cout << "Generation " << current_generation << " best fitness: " << pop[0].fitness << std::endl;
+        std::cout << "Generation " << current_generation << "\nBest fitness: " << pop[0].fitness << "\nWorst fitness: " << pop[pop.size()-1].fitness << std::endl;
         
     }
     bool valid = isSolutionValid(pop[0].genome, problem_instance);
