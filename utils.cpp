@@ -4,6 +4,12 @@
 #include <algorithm>
 #include <vector>
 
+// custom comparator for sorting the population
+bool compareByFitness(const Individual& a, const Individual& b) {
+    // sort in descending order (highest fitness first)
+    return a.fitness > b.fitness;
+}
+
 Population sort_population(Population population, bool ascending) {
     if (ascending) {
         std::sort(population.begin(), population.end(), [](const Individual& a, const Individual& b) {
@@ -11,9 +17,7 @@ Population sort_population(Population population, bool ascending) {
         });
     }
     else {
-        std::sort(population.begin(), population.end(), [](const Individual& a, const Individual& b) {
-            return a.fitness > b.fitness;
-        });
+        std::sort(population.begin(), population.end(), compareByFitness);
     }
     return population;
 }
