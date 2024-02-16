@@ -70,17 +70,54 @@ Problem_Instance load_instance(const std::string& filename) {
 }
 
 int main()
-{
+{   
+    Problem_Instance problem_instance = load_instance("train_0.json");
+    Genome genome = {
+        {1, 2, 3, 4},
+        {8, 5, 6, 7},
+        {10,  11, 9,  12},
+        {13, 15, 16, 14},
+        {20, 17, 18, 19},
+        {24, 21, 23, 22},
+        {25, 27, 28, 26},
+        {32, 29, 30, 31},
+        {33, 34, 35, 36},
+        {40, 38, 39, 37},
+        {43, 42, 41, 44, 45, 47},
+        {46, 48, 49},
+        {50, 51, 52},
+        {55, 54, 53, 56},
+        {57, 58, 60, 59},
+        {63, 62, 61, 64},
+        {67, 65, 68, 66},
+        {72, 71, 70, 69},
+        {75, 76, 74, 73},
+        {78, 77, 79, 80},
+        {81, 82, 83, 84},
+        {87, 86, 85, 88},
+        {90, 92, 91, 89},
+        {93, 94, 95, 96},
+        {97, 100, 99, 98}
+    };
+    std::cout << "Handcrafted genome is valid: " << isSolutionValid(genome, problem_instance) << std::endl;
+    std::cout << "Handcrafted genome fitness: " << evaluate_genome(genome, problem_instance) << std::endl;
+    std::cout << "Handcrafted genome total travel time: " << getTotalTravelTime(genome, problem_instance) << std::endl;
+    if (getTotalTravelTime(genome, problem_instance) < problem_instance.benchmark) {
+        std::cout << "Handcrafted genome is valid and better than benchmark by " << problem_instance.benchmark - getTotalTravelTime(genome, problem_instance) << std::endl;
+    }
+    else {
+        std::cout << "Handcrafted genome is valid but worse than benchmark by " << getTotalTravelTime(genome, problem_instance) - problem_instance.benchmark << std::endl;
+    }
+
     // instantiate the random number generator
     RandomGenerator& rng = RandomGenerator::getInstance();    
     rng.seedGenerator(4711); 
     // load the problem instance
-    Problem_Instance problem_instance = load_instance("train_0.json");
     Config config = {
         100, 
-        100, 
-        0.1, 
-        0.9, 
+        1000, 
+        0.6, 
+        0.8, 
         true, 
         roulette_wheel_selection, 
         order1Crossover, 
