@@ -4,6 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include <random>
+#include "RandomGenerator.h"
 
 
 Population roulette_wheel_selection(Population population) {
@@ -29,13 +30,10 @@ Population roulette_wheel_selection(Population population) {
     }
 
     
-    std::random_device rd;
-    int seed = rd();
-
-    std::mt19937 g(seed);
+    RandomGenerator& rng = RandomGenerator::getInstance();
     // Perform roulette wheel selection
     for (int i = 0; i < population.size(); i++) {
-        double r = std::generate_canonical<double, 10>(g);
+        double r = rng.generateRandomDouble(0, 1);
         double cumulativeProbability = 0;
         for (int j = 0; j < population.size(); j++) {
             cumulativeProbability += probabilities[j];

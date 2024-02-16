@@ -3,20 +3,18 @@
 #include <iostream>
 #include <random>
 #include "utils.cpp"
+#include "RandomGenerator.h"
+
 
 
 std::pair<Genome, Genome> order1Crossover(Genome parent1, Genome parent2) {
     
-    std::random_device rd;
-    int seed = rd();
-    
-    std::mt19937 g(seed);
     std::vector<int> parent1_flat = flatten_genome(parent1);
     std::vector<int> parent2_flat = flatten_genome(parent2);
 
-    std::uniform_int_distribution<int> distribution(0, parent1_flat.size() - 1);
-    int start = distribution(g);
-    int end = distribution(g);
+    RandomGenerator& rng = RandomGenerator::getInstance();
+    int start = rng.generateRandomInt(0, parent1_flat.size() - 1);
+    int end = rng.generateRandomInt(0, parent1_flat.size() - 1);
     if (start > end) {
         std::swap(start, end);
     }

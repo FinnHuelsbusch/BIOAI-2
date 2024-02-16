@@ -8,6 +8,7 @@
 #include "mutation.cpp"
 #include "survivorSelection.cpp"
 #include "parentSelection.cpp"
+#include "RandomGenerator.h"
 
 
 using json = nlohmann::json;
@@ -70,7 +71,10 @@ Problem_Instance load_instance(const std::string& filename) {
 
 int main()
 {
-    std::unordered_map<int, std::string> myMap;
+    // instantiate the random number generator
+    RandomGenerator& rng = RandomGenerator::getInstance();    
+    rng.seedGenerator(4711); 
+    // load the problem instance
     Problem_Instance problem_instance = load_instance("train_0.json");
     Config config = {
         100, 

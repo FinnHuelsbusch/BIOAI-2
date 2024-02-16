@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <random>
 #include "utils.cpp"
-
+#include "RandomGenerator.h"    
 
 
 bool isSolutionValid(Genome genome, Problem_Instance problem_instance){
@@ -100,11 +100,7 @@ Population initialize_random_population(Problem_Instance problem_instance, Confi
     Population pop = std::vector<Individual>();
     pop.reserve(config.population_size);
     // Seed the random number generator
-    if (config.seed == -1) {
-        std::random_device rd;
-        config.seed = rd();
-    }
-    std::mt19937 g(config.seed);
+    RandomGenerator& rng = RandomGenerator::getInstance();
     for (int i = 0; i < config.population_size; i++) {
        // Generate patient
         std::vector<int> IDs = std::vector<int>();
@@ -113,7 +109,7 @@ Population initialize_random_population(Problem_Instance problem_instance, Confi
         for (std::pair<int, Patient> kv : problem_instance.patients){
             IDs.push_back(kv.first);
         }
-        std::shuffle(IDs.begin(), IDs.end(), g);
+        rng.shuffle(IDs);
 
         // Distribute the patients over the nurses
 
@@ -126,7 +122,7 @@ Population initialize_random_population(Problem_Instance problem_instance, Confi
                 int nurse_id = i % problem_instance.number_of_nurses;
                 genome[nurse_id].push_back(id);
             } else {
-                int nurse_id = g() % problem_instance.number_of_nurses;
+                int nurse_id = rng.generateRandomInt(0, problem_instance.number_of_nurses - 1);
                 genome[nurse_id].push_back(id);
             }
         }
@@ -145,6 +141,7 @@ Population initialize_random_population(Problem_Instance problem_instance, Confi
 void SGA(Problem_Instance problem_instance, Config config){
 
     Population pop = initialize_random_population(problem_instance, config);
+    RandomGenerator& rng = RandomGenerator::getInstance();
     for (int current_generation = 0; current_generation < config.number_of_generations; current_generation++) {
         // Average fitness
         double average_fitness = std::accumulate(pop.begin(), pop.end(), 0.0, [](double sum, Individual individual) {
@@ -166,14 +163,10 @@ void SGA(Problem_Instance problem_instance, Config config){
         children.reserve(config.population_size);
         int crossovers = config.crossover_rate * config.population_size / 2;
         for (int i = 0; i < crossovers; i++) {
-            if (config.seed == -1) {
-                std::random_device rd;
-                config.seed = rd();
-            }
-            std::mt19937 g(config.seed);
-            std::uniform_int_distribution<int> distribution(0, parents.size() - 1);
-            int parent1_index = distribution(g);
-            int parent2_index = distribution(g);
+            
+            
+            int parent1_index = rng.generateRandomInt(0, parents.size() - 1);
+            int parent2_index = rng.generateRandomInt(0, parents.size() - 1);
             Individual parent1 = parents[parent1_index];
             Individual parent2 = parents[parent2_index];
             std::pair<Genome, Genome> children_genomes = config.crossover(parent1.genome, parent2.genome);
@@ -187,13 +180,7 @@ void SGA(Problem_Instance problem_instance, Config config){
         std::cout << "Mutation";
         int mutations = config.mutation_rate * config.population_size;
         for (int i = 0; i < mutations; i++) {
-            if (config.seed == -1) {
-                std::random_device rd;
-                config.seed = rd();
-            }
-            std::mt19937 g(config.seed);
-            std::uniform_int_distribution<int> distribution(0, children.size() - 1);
-            int child_index = distribution(g);
+            int child_index = rng.generateRandomInt(0, children.size() - 1);
             Individual child = children[child_index];
             Genome mutated_genome = config.mutation(child.genome);
             Individual mutated_child = {mutated_genome, evaluate_genome(mutated_genome, problem_instance)};
