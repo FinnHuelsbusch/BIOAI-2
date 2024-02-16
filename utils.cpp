@@ -4,10 +4,17 @@
 #include <algorithm>
 #include <vector>
 
-Population sort_population(Population population) {
-    std::sort(population.begin(), population.end(), [](Individual a, Individual b) {
-        return a.fitness < b.fitness;
-    });
+Population sort_population(Population population, bool ascending) {
+    if (ascending) {
+        std::sort(population.begin(), population.end(), [](const Individual& a, const Individual& b) {
+            return a.fitness < b.fitness;
+        });
+    }
+    else {
+        std::sort(population.begin(), population.end(), [](const Individual& a, const Individual& b) {
+            return a.fitness > b.fitness;
+        });
+    }
     return population;
 }
 
