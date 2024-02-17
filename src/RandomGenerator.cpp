@@ -1,13 +1,17 @@
 #include "RandomGenerator.h"
 
 #include <iostream>
+RandomGenerator* RandomGenerator::instance = nullptr;
 
 RandomGenerator::RandomGenerator() : isSeeded(false) {}
 
 RandomGenerator &RandomGenerator::getInstance()
 {
-    static RandomGenerator instance;
-    return instance;
+    if (instance == nullptr)
+    {
+        instance = new RandomGenerator();
+    }
+    return *instance;
 }
 
 void RandomGenerator::setSeed(unsigned int seed)
@@ -49,3 +53,17 @@ double RandomGenerator::generateRandomDouble(double min, double max)
 }
 
 template void RandomGenerator::shuffle(std::vector<int> &);
+
+#ifdef TESTING_MODE
+void RandomGenerator::setInstance(RandomGenerator *instance)
+{
+    // Set the instance to the provided instance (useful for testing)
+    RandomGenerator::instance = instance;
+}
+
+void RandomGenerator::resetInstance() {
+    // Delete the instance (useful for cleanup after tests)
+    delete instance;
+    instance = nullptr;
+}
+#endif

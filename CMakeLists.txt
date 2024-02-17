@@ -18,10 +18,12 @@ add_executable(BIOAI-2 ${SRC_FILES} main.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-file(GLOB_RECURSE TEST_FILES test/*.cpp)
-add_executable(TestBIOAI-2 ${TEST_FILES})
-target_link_libraries(TestBIOAI-2 PRIVATE gtest gtest_main nlohmann_json::nlohmann_json)
-target_include_directories(TestBIOAI-2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/test)
+file(GLOB_RECURSE TEST_FILES test/src/*.cpp)
+add_executable(TestBIOAI-2 ${TEST_FILES} ${SRC_FILES})
+target_link_libraries(TestBIOAI-2 PRIVATE gtest gtest_main gmock_main gmock nlohmann_json::nlohmann_json)
+target_include_directories(TestBIOAI-2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/test/include)
+# set TESTING_MODE to 1 to enable testing mode
+target_compile_definitions(TestBIOAI-2 PRIVATE TESTING_MODE=1)
 
 
 

@@ -8,7 +8,10 @@ class RandomGenerator
 private:
     std::mt19937_64 generator; // Mersenne Twister 64-bit engine
     bool isSeeded;
+    // Static instance variable
+    static RandomGenerator* instance;
 
+protected:
     RandomGenerator();
 
 public:
@@ -31,5 +34,9 @@ public:
 
         std::shuffle(elements.begin(), elements.end(), generator);
     }
+    #ifdef TESTING_MODE
+    static void setInstance(RandomGenerator *instance);
+    static void resetInstance();
+    #endif
 };
 
