@@ -1,5 +1,7 @@
 #include "RandomGenerator.h"
 
+#include <iostream>
+
 RandomGenerator::RandomGenerator() : isSeeded(false) {}
 
 RandomGenerator &RandomGenerator::getInstance()
@@ -8,7 +10,7 @@ RandomGenerator &RandomGenerator::getInstance()
     return instance;
 }
 
-void RandomGenerator::seedGenerator(unsigned int seed)
+void RandomGenerator::setSeed(unsigned int seed)
 {
     if (!isSeeded)
     {
@@ -26,7 +28,7 @@ int RandomGenerator::generateRandomInt(int min, int max)
     if (!isSeeded)
     {
         std::random_device rd;
-        seedGenerator(rd());
+        setSeed(rd());
     }
 
     std::uniform_int_distribution<int> distribution(min, max);
@@ -39,7 +41,7 @@ double RandomGenerator::generateRandomDouble(double min, double max)
     if (!isSeeded)
     {
         std::random_device rd;
-        seedGenerator(rd());
+        setSeed(rd());
     }
 
     std::uniform_real_distribution<double> distribution(min, max);

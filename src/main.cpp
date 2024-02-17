@@ -1,20 +1,24 @@
 #include <iostream>
 #include <fstream>
-#include "nlohmann/json.hpp"
-#include "structures.h"
 #include <string>
-#include "SGA.cpp"
-#include "crossover.cpp"
-#include "mutation.cpp"
-#include "survivorSelection.cpp"
-#include "parentSelection.cpp"
+#include <utility>
+#include "nlohmann/json.hpp"
+
+#include "structures.h"
 #include "RandomGenerator.h"
+#include "SGA.h"
+
+#include "parentSelection.h"
+#include "crossover.h"
+#include "mutation.h"
+#include "survivorSelection.h"
+
 
 
 using json = nlohmann::json;
 
 Problem_Instance load_instance(const std::string& filename) {
-    std::ifstream i("/workspaces/BIOAI-2/train/train_0.json");
+    std::ifstream i("/workspaces/BIOAI-2/train/" + filename);
     json data = json::parse(i);
     const string instance_name = data["instance_name"];
     std::cout << "Loading instance: " << instance_name << std::endl;
@@ -102,14 +106,19 @@ int main()
     std::cout << "Handcrafted genome is valid: " << isSolutionValid(genome, problem_instance) << std::endl;
     std::cout << "Handcrafted genome fitness: " << evaluate_genome(genome, problem_instance) << std::endl;
     std::cout << "Handcrafted genome total travel time: " << getTotalTravelTime(genome, problem_instance) << std::endl;
-    function_parameters roulette_wheel_selection_configuration_params;
+
+    RandomGenerator& rng = RandomGenerator::getInstance();
+    rng.setSeed(42);
+
+    function_parameters roulette_wheel_selection_configuration_params = {};
     function_parameters tournament_selection_configuration_params = {{"tournament_size", 5}};
-    parent_selection_configuration roulette_wheel_selection_configuration = {roulette_wheel_selection, roulette_wheel_selection_configuration_params};
-    crossover_configuration order1Crossover_configuration = {{order1Crossover, 1.0}};
+    crossover_configuration order1Crossover_configuration = {{order1Crossover, 0.8}};
     function_parameters reassignOnePatient_params;
     mutation_configuration reassignOnePatient_configuration = {{reassignOnePatient, reassignOnePatient_params, 1.0}};
     function_parameters full_replacement_params;
     survivor_selection_configuration full_replacement_configuration = {full_replacement, full_replacement_params};
+    parent_selection_configuration roulette_wheel_selection_configuration = {roulette_wheel_selection, tournament_selection_configuration_params};
+
     
     
 

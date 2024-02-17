@@ -1,13 +1,7 @@
-#pragma once
-
-#include "structures.h"
-#include <random>
-#include <iostream>
-#include <algorithm>
-#include "utils.cpp"
+#include "mutation.h"
 #include "RandomGenerator.h"
 
-Genome reassignOnePatient(Genome& genome, function_parameters& parameters) {
+Genome reassignOnePatient(Genome& genome, const function_parameters& parameters) {
     
     RandomGenerator& rng = RandomGenerator::getInstance();
     int source_nurse = rng.generateRandomInt(0, genome.size() - 1);

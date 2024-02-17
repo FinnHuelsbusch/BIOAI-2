@@ -1,11 +1,9 @@
+#include "SGA.h"
 #include "structures.h"
-#include "crossover.cpp"
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <random>
-#include "utils.cpp"
+
+#include "utils.h"
 #include "RandomGenerator.h"    
+#include <iostream>
 
 
 bool isSolutionValid(Genome genome, Problem_Instance problem_instance){

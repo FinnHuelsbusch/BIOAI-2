@@ -1,8 +1,6 @@
-#pragma once
 #include "structures.h"
-#include <iostream>
 #include <algorithm>
-#include <vector>
+#include <iostream>
 
 // custom comparator for sorting the population
 bool compareByFitness(const Individual& a, const Individual& b) {

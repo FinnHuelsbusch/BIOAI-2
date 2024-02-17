@@ -1,10 +1,9 @@
 #pragma once
-#include <iostream>
 #include <vector>
 #include <variant>
 #include <map>
 #include <string>
-
+#include <unordered_map>
  
 using namespace std;
  
@@ -48,14 +47,15 @@ struct Individual {
 typedef std::vector<Individual> Population;
 
 typedef std::map<string, std::variant<int, double, string, bool>> function_parameters;
-typedef Population (*parent_selection_function)(const Population& population, function_parameters& parameters);
 typedef std::pair<Genome, Genome> (*crossover_function)(const Genome&, const Genome&);
-typedef Genome (*mutation_function)(Genome&, function_parameters& parameters);
-typedef Population (*survivor_selection_function)(const Population&, const Population&, function_parameters& parameters);
+typedef Genome (*mutation_function)(Genome&, const function_parameters& parameters);
+typedef Population (*parent_selection_function)(const Population& population, const function_parameters& parameters);
+typedef Population (*survivor_selection_function)(const Population& parents, const Population& children, const function_parameters& parameters);
 
-typedef std::pair<parent_selection_function, function_parameters&> parent_selection_configuration; 
+
 typedef std::vector<std::pair<crossover_function, double>> crossover_configuration;
 typedef std::vector<std::tuple<mutation_function, function_parameters&, double>> mutation_configuration;
+typedef std::pair<parent_selection_function, function_parameters&> parent_selection_configuration; 
 typedef std::pair<survivor_selection_function, function_parameters&> survivor_selection_configuration;
 
 struct Config {

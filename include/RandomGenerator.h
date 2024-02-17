@@ -1,5 +1,4 @@
 #pragma once
-#include <iostream>
 #include <random>
 #include <vector>
 #include <algorithm>
@@ -15,7 +14,7 @@ private:
 public:
     static RandomGenerator &getInstance();
 
-    void seedGenerator(unsigned int seed);
+    void setSeed(unsigned int seed);
 
     int generateRandomInt(int min, int max);
 
@@ -27,7 +26,7 @@ public:
         if (!isSeeded)
         {
             std::random_device rd;
-            seedGenerator(rd());
+            setSeed(rd());
         }
 
         std::shuffle(elements.begin(), elements.end(), generator);
