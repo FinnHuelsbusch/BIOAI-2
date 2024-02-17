@@ -11,10 +11,6 @@ class RandomGeneratorTestFixture : public ::testing::Test {
 protected:
     void SetUp() override {
         // Set up mock
-        ON_CALL(mockRng, generateRandomInt(testing::_, testing::_)).WillByDefault(testing::ReturnRoundRobin({1, 13, 4711}));
-
-        ON_CALL(mockRng, generateRandomDouble(testing::_, testing::_)).WillByDefault(testing::ReturnRoundRobin({0.1, 0.2, 0.3}));
-
         RandomGenerator::setInstance(&mockRng);
     }
 
@@ -40,6 +36,12 @@ TEST(RandomGeneratorTest, TestSetAndResetInstance) {
 }
 
 TEST_F(RandomGeneratorTestFixture, TestGenerateRandomInt) {
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(1))
+        .WillOnce(testing::Return(13))
+        .WillOnce(testing::Return(4711));
+
     RandomGenerator& rng = RandomGenerator::getInstance();
     for (int i : {1, 13, 4711}) {
         int result = rng.generateRandomInt(1, 100);
@@ -48,6 +50,12 @@ TEST_F(RandomGeneratorTestFixture, TestGenerateRandomInt) {
 }
 
 TEST_F(RandomGeneratorTestFixture, TestGenerateRandomDouble) {
+
+    EXPECT_CALL(mockRng, generateRandomDouble(testing::_, testing::_))
+        .WillOnce(testing::Return(0.1))
+        .WillOnce(testing::Return(0.2))
+        .WillOnce(testing::Return(0.3));
+
     RandomGenerator& rng = RandomGenerator::getInstance();
     for (double i : {0.1, 0.2, 0.3}) {
         double result = rng.generateRandomDouble(0.0, 1.0);
