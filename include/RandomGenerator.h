@@ -13,27 +13,18 @@ private:
 
 protected:
     RandomGenerator();
-
+    
 public:
     static RandomGenerator &getInstance();
 
     void setSeed(unsigned int seed);
 
-    int generateRandomInt(int min, int max);
+    virtual int generateRandomInt(int min, int max);
 
-    double generateRandomDouble(double min, double max);
+    virtual double generateRandomDouble(double min, double max);
 
-    template <typename T>
-    void shuffle(std::vector<T> &elements)
-    {
-        if (!isSeeded)
-        {
-            std::random_device rd;
-            setSeed(rd());
-        }
-
-        std::shuffle(elements.begin(), elements.end(), generator);
-    }
+    virtual void shuffle(std::vector<int> &elements); 
+    
     #ifdef TESTING_MODE
     static void setInstance(RandomGenerator *instance);
     static void resetInstance();

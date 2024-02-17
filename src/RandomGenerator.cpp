@@ -52,7 +52,15 @@ double RandomGenerator::generateRandomDouble(double min, double max)
     return distribution(generator);
 }
 
-template void RandomGenerator::shuffle(std::vector<int> &);
+void RandomGenerator::shuffle(std::vector<int> &elements){
+    if (!isSeeded)
+    {
+        std::random_device rd;
+        setSeed(rd());
+    }
+
+    std::shuffle(elements.begin(), elements.end(), generator);
+}
 
 #ifdef TESTING_MODE
 void RandomGenerator::setInstance(RandomGenerator *instance)
@@ -62,8 +70,6 @@ void RandomGenerator::setInstance(RandomGenerator *instance)
 }
 
 void RandomGenerator::resetInstance() {
-    // Delete the instance (useful for cleanup after tests)
-    delete instance;
     instance = nullptr;
 }
 #endif

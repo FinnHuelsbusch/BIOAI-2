@@ -161,7 +161,7 @@ Population applyCrossover(Population& parents, std::vector<std::pair<crossover_f
     for (Individual parent : parents) {
         children.push_back(parent);
     }
-    RandomGenerator rng = RandomGenerator::getInstance();
+    RandomGenerator& rng = RandomGenerator::getInstance();
 
     for (std::pair<crossover_function, double> crossover_pair : crossover) {
         crossover_function crossover_function = crossover_pair.first;
@@ -186,7 +186,7 @@ Population applyCrossover(Population& parents, std::vector<std::pair<crossover_f
 }
 
 Population applyMutation(Population& population, std::vector<std::tuple<mutation_function, function_parameters&, double>>& mutation, Problem_Instance& problem_instance){
-    RandomGenerator rng = RandomGenerator::getInstance();
+    RandomGenerator& rng = RandomGenerator::getInstance();
     for (std::tuple<mutation_function, function_parameters, double> mutation_tuple : mutation) {
         mutation_function mutation_function = std::get<0>(mutation_tuple);
         function_parameters parameters = std::get<1>(mutation_tuple);
