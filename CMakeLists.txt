@@ -10,10 +10,18 @@ include(FetchContent)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
+FetchContent_Declare(googletest URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip)
+FetchContent_MakeAvailable(googletest)
+
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
-add_executable(BIOAI-2 ${SRC_FILES})
-target_include_directories(BIOAI-2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_executable(BIOAI-2 ${SRC_FILES} main.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+file(GLOB_RECURSE TEST_FILES test/*.cpp)
+add_executable(TestBIOAI-2 ${TEST_FILES})
+target_link_libraries(TestBIOAI-2 PRIVATE gtest gtest_main nlohmann_json::nlohmann_json)
+target_include_directories(TestBIOAI-2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/test)
 
 
 
