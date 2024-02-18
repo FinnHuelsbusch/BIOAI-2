@@ -64,42 +64,64 @@ std::pair<Genome, Genome> partiallyMappedCrossover(const Genome& parent1, const 
     std::vector<int> child2_flat = std::vector<int>(parent2_flat.size(), -1);
 
     // copy the selected part from parent1 to child1 and the selected part from parent2 to child2
+    vector<int> previous_indices;
     for (int i = start; i <= end; i++) {
         child1_flat[i] = parent1_flat[i];
-        int index = i; 
-        do {
-            std::vector<int>::iterator it = std::find(parent2_flat.begin(), parent2_flat.end(), parent1_flat[index]); 
-
-            index = it - parent2_flat.begin();
-
-
-
-        } while (start <= index && index <= end);
-        
-        child2_flat[index] = parent2_flat[i];
-        
-
         child2_flat[i] = parent2_flat[i];
-        index = i;
+    }
+
+    for (int i = start; i <= end; i++) {
+        int index = i; 
+        previous_indices.clear();
+        // check if the value is already in the selected part
+        if (std::find(child1_flat.begin(), child1_flat.end(), parent2_flat[i]) != child1_flat.end()) {          
+            // the value is already in the selected part
+            continue;
+        }
         do {
+            previous_indices.push_back(index);
+            std::vector<int>::iterator it = std::find(parent2_flat.begin(), parent2_flat.end(), parent1_flat[index]); 
+            index = it - parent2_flat.begin();
+        } while ((start <= index && index <= end && std::find(previous_indices.begin(), previous_indices.end(), index) == previous_indices.end()) || child1_flat[index] != -1);
+        
+        child1_flat[index] = parent2_flat[i];
+    }
+
+    for (int i = start; i <= end; i++) {
+        
+        int index = i;
+        previous_indices.clear();
+        if (std::find(child2_flat.begin(), child2_flat.end(), parent1_flat[i]) != child2_flat.end()) {
+            continue;
+        }
+        bool help; 
+        do {
+            previous_indices.push_back(index);
             std::vector<int>::iterator it = std::find(parent1_flat.begin(), parent1_flat.end(), parent2_flat[index]); 
             index = it - parent1_flat.begin();
-
-
-        } while (start <= index && index <= end);
-        if (index != -1) {
-            child1_flat[index] = parent1_flat[i];
-        }
+        } while ((help && start <= index && index <= end && std::find(previous_indices.begin(), previous_indices.end(), index) == previous_indices.end()) || child2_flat[index] != -1);
+        child2_flat[index] = parent1_flat[i];
+        
     }
 
     // fill the rest of the child with the remaining genes from the other parent
     for (int i = 1; i < parent1_flat.size(); i++) {
+        int index = (i + end) % parent1_flat.size();
         // check if the value is undefined
-        if (child1_flat[i] == -1) {
-            child1_flat[i] = parent2_flat[i];
+        if (child1_flat[index] == -1) {
+            int j = index; 
+            while (std::find(child1_flat.begin(), child1_flat.end(), parent2_flat[j]) != child1_flat.end()) {
+                j = (j + 1) % parent1_flat.size();
+            }
+            child1_flat[index] = parent2_flat[j];
         }
-        if (child2_flat[i] == -1) {
-            child2_flat[i] = parent1_flat[i];
+
+        if (child2_flat[index] == -1) {
+            int j = index; 
+            while (std::find(child2_flat.begin(), child2_flat.end(), parent1_flat[j]) != child2_flat.end()) {
+                j = (j + 1) % parent2_flat.size();
+            }
+            child2_flat[index] = parent1_flat[j];
         }
     }
 
