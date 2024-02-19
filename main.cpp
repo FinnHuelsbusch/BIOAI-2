@@ -113,6 +113,7 @@ int main()
     function_parameters roulette_wheel_selection_configuration_params = {};
     function_parameters tournament_selection_configuration_params = {{"tournament_size", 5}};
     crossover_configuration order1Crossover_configuration = {{order1Crossover, 0.8}};
+    crossover_configuration partiallyMappedCrossover_configuration = {{partiallyMappedCrossover, 0.8}};
     function_parameters reassignOnePatient_params;
     mutation_configuration reassignOnePatient_configuration = {{reassignOnePatient, reassignOnePatient_params, 1.0}};
     function_parameters full_replacement_params;
@@ -122,9 +123,9 @@ int main()
     
     
 
-    Config config = Config(100, 100, true, 
+    Config config = Config(10000, 300, true, 
         roulette_wheel_selection_configuration, 
-        order1Crossover_configuration, 
+        partiallyMappedCrossover_configuration, 
         reassignOnePatient_configuration, 
         full_replacement_configuration
     );
