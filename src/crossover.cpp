@@ -3,6 +3,9 @@
 #include <algorithm>
 #include "RandomGenerator.h"
 #include "utils.h"
+#include <cassert>
+#include <set>
+#include <climits>
 
 
 
@@ -130,40 +133,69 @@ std::pair<Genome, Genome> partiallyMappedCrossover(const Genome& parent1, const 
     return std::make_pair(child1, child2);
 }
 
-std::pair<Genome, Genome> edgeRecombination(const Genome& parent1, const Genome& parent2) {
+Genome edgeRecombination(const Genome& parent1, const Genome& parent2) {
     std::vector<int> parent1_flat = flatten_genome(parent1);
     std::vector<int> parent2_flat = flatten_genome(parent2);
+    // assert that the genomes have the same length
+    assert(parent1_flat.size() == parent2_flat.size());
 
-    std::vector<std::vector<int>> adjacency_list(parent1_flat.size(), std::vector<int>());
+    std::map<int, std::vector<int>> adjacency_list;
+    for (int i = 0; i < parent1_flat.size(); i++) {
+        adjacency_list[parent1_flat[i]] = std::vector<int>();
+    }
     for (int i = 0; i < parent1_flat.size(); i++) {
         int left = (i - 1 + parent1_flat.size()) % parent1_flat.size();
         int right = (i + 1) % parent1_flat.size();
         adjacency_list[parent1_flat[i]].push_back(parent1_flat[left]);
         adjacency_list[parent1_flat[i]].push_back(parent1_flat[right]);
-        left = (i - 1 + parent2_flat.size()) % parent2_flat.size();
-        right = (i + 1) % parent2_flat.size();
         adjacency_list[parent2_flat[i]].push_back(parent2_flat[left]);
         adjacency_list[parent2_flat[i]].push_back(parent2_flat[right]);
     }
 
-    std::vector<int> child1_flat = std::vector<int>(parent1_flat.size());
-    std::vector<int> child2_flat = std::vector<int>(parent2_flat.size());
-
     RandomGenerator& rng = RandomGenerator::getInstance();
-    int current = rng.generateRandomInt(0, parent1_flat.size() - 1);
+    std::vector<int> child;
+    int current = parent1_flat[rng.generateRandomInt(0, parent1_flat.size() - 1)];
     for (int i = 0; i < parent1_flat.size(); i++) {
-        child1_flat[i] = current;
-        child2_flat[i] = current;
-        for (int j = 0; j < adjacency_list.size(); j++) {
-            adjacency_list[j].erase(std::remove(adjacency_list[j].begin(), adjacency_list[j].end(), current), adjacency_list[j].end());
+        child.push_back(current);
+        for (auto& [key, value] : adjacency_list) {
+            value.erase(std::remove(value.begin(), value.end(), current), value.end());
         }
-        if (i < parent1_flat.size() - 1) {
-            std::sort(adjacency_list[current].begin(), adjacency_list[current].end());
-            current = adjacency_list[current][0];
+        
+        //Examine list for current element:
+            // – If there is a common edge, pick that to be next element
+            // – Otherwise pick the entry in the list which itself has the shortest list
+            // – Ties are split at random
+        int new_current = INT_MAX;
+        set<int> seen = set<int>();
+        for (int value : adjacency_list[current]) {
+            if (seen.contains(value)) {
+                new_current = value;
+                break;
+            }
+            seen.insert(value);
         }
-    }
 
-    Genome child1 = unflatten_genome(child1_flat, parent1);
-    Genome child2 = unflatten_genome(child2_flat, parent2);
-    return std::make_pair(child1, child2);
+        // choice of new current is not random if there are two list of equal length. 
+        if (new_current == INT_MAX) {
+            int min_size = INT_MAX;
+            for (int key : adjacency_list[current]) {
+                set<int> value_set = set<int>(adjacency_list[key].begin(), adjacency_list[key].end());
+                if (value_set.size() <= min_size) {
+                    min_size = value_set.size();
+                    new_current = key;
+                }
+            }
+        }
+        adjacency_list.erase(current);
+        if (adjacency_list.empty()) {
+            break;
+        }
+        if (new_current == INT_MAX) {
+            do{
+                new_current = parent1_flat[rng.generateRandomInt(0, parent1_flat.size() - 1)];
+            } while (adjacency_list.find(new_current) == adjacency_list.end());
+        }
+        current = new_current;
+    }
+    return unflatten_genome(child, parent1);
 }

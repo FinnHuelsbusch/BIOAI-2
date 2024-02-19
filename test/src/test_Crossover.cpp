@@ -12,10 +12,6 @@ namespace {
 class CrossoverTestFixture : public ::testing::Test {
 protected:
     void SetUp() override {
-        // Set up mock
-        EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_)).WillRepeatedly(testing::ReturnRoundRobin({3, 6}));
-
-
         RandomGenerator::setInstance(&mockRng);
     }
 
@@ -30,6 +26,8 @@ protected:
 };
 
 TEST_F (CrossoverTestFixture, TestCrossover) {
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_)).WillRepeatedly(testing::ReturnRoundRobin({3, 6}));
+
     
     Genome expectedChild1 = {{3, 8, 2, 4, 5, 6, 7, 1, 9}};
     Genome expectedChild2 = {{3, 4, 7, 8, 2, 6, 5, 9, 1}};
@@ -44,6 +42,8 @@ TEST_F (CrossoverTestFixture, TestCrossover) {
 } 
 
 TEST_F (CrossoverTestFixture, partiallyMappedCrossover) {
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_)).WillRepeatedly(testing::ReturnRoundRobin({3, 6}));
+
     Genome expectedChild1 = {{9, 3, 2, 4, 5, 6, 7, 1, 8}};
     Genome expectedChild2 = {{1, 7, 3, 8, 2, 6, 5, 4, 9}};
 
@@ -53,5 +53,15 @@ TEST_F (CrossoverTestFixture, partiallyMappedCrossover) {
 
     EXPECT_EQ(child1, expectedChild1);
     EXPECT_EQ(child2, expectedChild2);
+}
+
+TEST_F (CrossoverTestFixture, edgeRecombination) {
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_)).WillRepeatedly(testing::ReturnRoundRobin({0}));
+    Genome expectedChild1 = {{1, 5, 6, 2, 8, 7, 3, 4, 9}};
+
+    Genome child1 = edgeRecombination(parent1, parent2);
+
+
+    EXPECT_EQ(child1, expectedChild1);
 }
 } // namespace
