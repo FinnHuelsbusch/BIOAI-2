@@ -42,3 +42,19 @@ Genome swapWithinJourney(Genome& genome, const function_parameters& parameters) 
     std::swap(genome[nurse][first_patient_index], genome[nurse][second_patient_index]);
     return genome;
 }
+
+Genome swapBetweenJourneys(Genome& genome, const function_parameters& parameters) {
+    RandomGenerator& rng = RandomGenerator::getInstance();
+    int source_nurse;
+    do {
+        source_nurse = rng.generateRandomInt(0, genome.size() - 1);
+    } while (genome[source_nurse].size() == 0);
+    int destination_nurse;
+    do {
+        destination_nurse = rng.generateRandomInt(0, genome.size() - 1);
+    } while (destination_nurse == source_nurse || genome[destination_nurse].size() == 0);
+    int patient_index_nurse1 = rng.generateRandomInt(0, genome[source_nurse].size() - 1);
+    int patient_index_nurse2 = rng.generateRandomInt(0, genome[destination_nurse].size() - 1);
+    std::swap(genome[source_nurse][patient_index_nurse1], genome[destination_nurse][patient_index_nurse2]);
+    return genome;
+}
