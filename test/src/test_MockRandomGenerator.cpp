@@ -1,4 +1,3 @@
-#define TESTING_MODE
 #include <gtest/gtest.h>
 #include <gmock/gmock.h> 
 #include "RandomGenerator.h"
