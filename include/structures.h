@@ -47,7 +47,7 @@ struct Individual {
 typedef std::vector<Individual> Population;
 
 typedef std::map<string, std::variant<int, double, string, bool>> function_parameters;
-typedef std::pair<Genome, Genome> (*crossover_function)(const Genome&, const Genome&);
+typedef std::pair<Genome, optional<Genome>> (*crossover_function)(const Genome&, const Genome&);
 typedef Genome (*mutation_function)(Genome&, const function_parameters& parameters);
 typedef Population (*parent_selection_function)(const Population& population, const function_parameters& parameters);
 typedef Population (*survivor_selection_function)(const Population& parents, const Population& children, const function_parameters& parameters);

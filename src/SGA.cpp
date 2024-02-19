@@ -175,11 +175,13 @@ Population applyCrossover(Population& parents, std::vector<std::pair<crossover_f
             }
             Individual individual_1 = parents[individual_index_1];
             Individual individual_2 = parents[individual_index_2];
-            std::pair<Genome, Genome> children_genomes = crossover_function(individual_1.genome, individual_2.genome);
+            std::pair<Genome, std::optional<Genome>> children_genomes = crossover_function(individual_1.genome, individual_2.genome);
             Individual child_1 = {children_genomes.first, evaluate_genome(children_genomes.first, problem_instance)};
-            Individual child_2 = {children_genomes.second, evaluate_genome(children_genomes.second, problem_instance)};
             children[individual_index_1] = child_1;
-            children[individual_index_2] = child_2;       
+            if(children_genomes.second.has_value()){
+                Individual child_2 = {children_genomes.second.value(), evaluate_genome(children_genomes.second.value(), problem_instance)};
+                children[individual_index_2] = child_2;
+            }
         }
     }
     return children;

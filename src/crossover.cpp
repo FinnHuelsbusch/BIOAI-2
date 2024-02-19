@@ -9,7 +9,7 @@
 
 
 
-std::pair<Genome, Genome> order1Crossover(const Genome& parent1, const Genome& parent2) {
+std::pair<Genome, std::optional<Genome>> order1Crossover(const Genome& parent1, const Genome& parent2) {
     
     std::vector<int> parent1_flat = flatten_genome(parent1);
     std::vector<int> parent2_flat = flatten_genome(parent2);
@@ -53,7 +53,7 @@ std::pair<Genome, Genome> order1Crossover(const Genome& parent1, const Genome& p
 }
 
 
-std::pair<Genome, Genome> partiallyMappedCrossover(const Genome& parent1, const Genome& parent2) {
+std::pair<Genome, std::optional<Genome>> partiallyMappedCrossover(const Genome& parent1, const Genome& parent2) {
     std::vector<int> parent1_flat = flatten_genome(parent1);
     std::vector<int> parent2_flat = flatten_genome(parent2);
 
@@ -133,7 +133,7 @@ std::pair<Genome, Genome> partiallyMappedCrossover(const Genome& parent1, const 
     return std::make_pair(child1, child2);
 }
 
-Genome edgeRecombination(const Genome& parent1, const Genome& parent2) {
+std::pair<Genome, std::optional<Genome>> edgeRecombination(const Genome& parent1, const Genome& parent2) {
     std::vector<int> parent1_flat = flatten_genome(parent1);
     std::vector<int> parent2_flat = flatten_genome(parent2);
     // assert that the genomes have the same length
@@ -197,5 +197,5 @@ Genome edgeRecombination(const Genome& parent1, const Genome& parent2) {
         }
         current = new_current;
     }
-    return unflatten_genome(child, parent1);
+    return std::make_pair(unflatten_genome(child, parent1), std::nullopt);
 }
