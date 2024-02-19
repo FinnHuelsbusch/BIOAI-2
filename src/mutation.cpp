@@ -1,5 +1,6 @@
 #include "mutation.h"
 #include "RandomGenerator.h"
+#include <iostream>
 
 Genome reassignOnePatient(Genome& genome, const function_parameters& parameters) {
     
@@ -56,5 +57,20 @@ Genome swapBetweenJourneys(Genome& genome, const function_parameters& parameters
     int patient_index_nurse1 = rng.generateRandomInt(0, genome[source_nurse].size() - 1);
     int patient_index_nurse2 = rng.generateRandomInt(0, genome[destination_nurse].size() - 1);
     std::swap(genome[source_nurse][patient_index_nurse1], genome[destination_nurse][patient_index_nurse2]);
+    return genome;
+}
+
+Genome insertWithinJourney(Genome& genome, const function_parameters& parameters) {
+    RandomGenerator& rng = RandomGenerator::getInstance();
+    int nurse;
+    do {
+        nurse = rng.generateRandomInt(0, genome.size() - 1);
+    } while (genome[nurse].size() < 2);
+    int patient_index = rng.generateRandomInt(0, genome[nurse].size() - 1);
+    int patient = genome[nurse][patient_index];
+    int insertion_point = rng.generateRandomInt(0, genome[nurse].size());
+    // insert patient at insertion point
+    genome[nurse].erase(genome[nurse].begin() + patient_index);
+    genome[nurse].insert(genome[nurse].begin() + insertion_point, patient);
     return genome;
 }

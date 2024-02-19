@@ -246,4 +246,34 @@ TEST_F(MutationTestFixture, swapBetweenJourneys_identicalSourceAndDestination){
     EXPECT_EQ(result, expectedGenome);
 }
 
+TEST_F(MutationTestFixture, insertWithinJourney_standardCase) {
+    Genome genome = {{1, 2, 3, 4, 5},
+                     {6, 7, 8, 9, 10}};
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0))  // nurse
+        .WillOnce(testing::Return(4))  // patient index
+        .WillOnce(testing::Return(3)); // insertion point
+
+    Genome expectedGenome = {{1, 2, 3, 5, 4},
+                             {6, 7, 8, 9, 10}};
+    Genome result = insertWithinJourney(genome, {});
+    EXPECT_EQ(result, expectedGenome);
+}
+
+TEST_F(MutationTestFixture, insertWithinJourney_JourneyIsToShort){
+    Genome genome = {{1, 2, 3, 4, 5},
+                     {6}};
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(1))  // nurse
+        .WillOnce(testing::Return(0))  // nurse resampled
+        .WillOnce(testing::Return(4))  // patient index
+        .WillOnce(testing::Return(0)); // insertion point
+
+    Genome expectedGenome = {{5, 1, 2, 3, 4},
+                             {6}};
+    Genome result = insertWithinJourney(genome, {});
+    EXPECT_EQ(result, expectedGenome);
+}
 } // namespace
