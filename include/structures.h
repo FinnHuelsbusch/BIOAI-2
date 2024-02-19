@@ -33,6 +33,9 @@ struct Problem_Instance {
     std::unordered_map<int, Patient> patients;
     // travel time matrix
     std::vector<std::vector<double>> travel_time;
+
+    // Constructor
+    Problem_Instance(string instance_name, int number_of_nurses, int nurse_capacity, float benchmark, Depot depot, std::unordered_map<int, Patient> patients, std::vector<std::vector<double>> travel_time) : instance_name(instance_name), number_of_nurses(number_of_nurses), nurse_capacity(nurse_capacity), benchmark(benchmark), depot(depot), patients(patients), travel_time(travel_time) {}
 }; 
 
 typedef std::vector<int> Journey;
@@ -46,7 +49,7 @@ struct Individual {
 
 typedef std::vector<Individual> Population;
 
-typedef std::map<string, std::variant<int, double, string, bool>> function_parameters;
+typedef std::map<string, std::variant<int, double, string, bool, Problem_Instance>> function_parameters;
 typedef std::pair<Genome, optional<Genome>> (*crossover_function)(const Genome&, const Genome&);
 typedef Genome (*mutation_function)(Genome&, const function_parameters& parameters);
 typedef Population (*parent_selection_function)(const Population& population, const function_parameters& parameters);

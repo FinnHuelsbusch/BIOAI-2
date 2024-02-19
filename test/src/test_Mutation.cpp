@@ -276,4 +276,122 @@ TEST_F(MutationTestFixture, insertWithinJourney_JourneyIsToShort){
     Genome result = insertWithinJourney(genome, {});
     EXPECT_EQ(result, expectedGenome);
 }
+
+TEST_F(MutationTestFixture, twoOpt_standardCase) {
+    std::unordered_map<int, Patient> patients = {
+        {1, {1, 0, 0, 0, 0, 2, 0}},
+        {2, {2, 0, 0, 0, 0, 4, 0}},
+        {3, {3, 0, 0, 0, 0, 4, 2}},
+        {4, {4, 0, 0, 0, 0, 2, 2}},
+        {5, {5, 0, 0, 0, 0, 0, 2}}
+    };
+    std::vector<std::vector<double>> travel_time = {
+        // manhattan distance
+        {0, 2, 4, 6, 4, 2},
+        {2, 0, 2, 4, 2, 4},
+        {4, 2, 0, 2, 4, 6},
+        {6, 4, 2, 0, 2, 4},
+        {4, 2, 4, 2, 0, 2},
+        {2, 4, 6, 4, 2, 0}
+        
+    };
+
+    Problem_Instance instance = {
+        "test", // instance_name
+        1, // number_of_nurses
+        6, // nurse_capacity
+        0.0, // benchmark
+        {0, 0, 0}, // depot
+        patients, 
+        travel_time
+    };
+
+    Genome genome = {{4,2,5,1,3}};
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0));  // nurse
+
+    Genome expectedGenome = {{5,4,3,2,1}};
+    Genome result = twoOpt(genome, {{"problem_instance", instance}});
+    EXPECT_EQ(result, expectedGenome);
+}
+
+TEST_F(MutationTestFixture, twoOpt_InputIsOptimal) {
+    std::unordered_map<int, Patient> patients = {
+        {1, {1, 0, 0, 0, 0, 2, 0}},
+        {2, {2, 0, 0, 0, 0, 4, 0}},
+        {3, {3, 0, 0, 0, 0, 4, 2}},
+        {4, {4, 0, 0, 0, 0, 2, 2}},
+        {5, {5, 0, 0, 0, 0, 0, 2}}
+    };
+    std::vector<std::vector<double>> travel_time = {
+        // manhattan distance
+        {0, 2, 4, 6, 4, 2},
+        {2, 0, 2, 4, 2, 4},
+        {4, 2, 0, 2, 4, 6},
+        {6, 4, 2, 0, 2, 4},
+        {4, 2, 4, 2, 0, 2},
+        {2, 4, 6, 4, 2, 0}
+        
+    };
+
+    Problem_Instance instance = {
+        "test", // instance_name
+        1, // number_of_nurses
+        6, // nurse_capacity
+        0.0, // benchmark
+        {0, 0, 0}, // depot
+        patients, 
+        travel_time
+    };
+
+    Genome genome = {{1,2,3,4,5}};
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0));  // nurse
+
+    Genome expectedGenome = {{1,2,3,4,5}};
+    Genome result = twoOpt(genome, {{"problem_instance", instance}});
+    EXPECT_EQ(result, expectedGenome);
+}
+
+TEST_F(MutationTestFixture, twoOpt_oneOptStep) {
+    std::unordered_map<int, Patient> patients = {
+        {1, {1, 0, 0, 0, 0, 2, 0}},
+        {2, {2, 0, 0, 0, 0, 4, 0}},
+        {3, {3, 0, 0, 0, 0, 4, 2}},
+        {4, {4, 0, 0, 0, 0, 2, 2}},
+        {5, {5, 0, 0, 0, 0, 0, 2}}
+    };
+    std::vector<std::vector<double>> travel_time = {
+        // manhattan distance
+        {0, 2, 4, 6, 4, 2},
+        {2, 0, 2, 4, 2, 4},
+        {4, 2, 0, 2, 4, 6},
+        {6, 4, 2, 0, 2, 4},
+        {4, 2, 4, 2, 0, 2},
+        {2, 4, 6, 4, 2, 0}
+        
+    };
+
+    Problem_Instance instance = {
+        "test", // instance_name
+        1, // number_of_nurses
+        6, // nurse_capacity
+        0.0, // benchmark
+        {0, 0, 0}, // depot
+        patients, 
+        travel_time
+    };
+
+    Genome genome = {{4,3,2,1,5}};
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0));  // nurse
+
+    Genome expectedGenome = {{1,2,3,4,5}};
+    Genome result = twoOpt(genome, {{"problem_instance", instance}});
+    EXPECT_EQ(result, expectedGenome);
+}
+
 } // namespace
