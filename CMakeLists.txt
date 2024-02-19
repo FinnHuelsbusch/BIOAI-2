@@ -12,6 +12,7 @@ FetchContent_MakeAvailable(json)
 
 FetchContent_Declare(googletest URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip)
 FetchContent_MakeAvailable(googletest)
+include(GoogleTest)
 
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 add_executable(BIOAI-2 ${SRC_FILES} main.cpp)
@@ -20,10 +21,12 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/in
 
 file(GLOB_RECURSE TEST_FILES test/src/*.cpp)
 add_executable(TestBIOAI-2 ${TEST_FILES} ${SRC_FILES})
-target_link_libraries(TestBIOAI-2 PRIVATE gtest gtest_main gmock_main gmock nlohmann_json::nlohmann_json)
+target_link_libraries(TestBIOAI-2 PRIVATE gtest_main gmock_main nlohmann_json::nlohmann_json)
 target_include_directories(TestBIOAI-2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/test/include)
 # set TESTING_MODE to 1 to enable testing mode
 target_compile_definitions(TestBIOAI-2 PRIVATE TESTING_MODE=1)
+gtest_discover_tests(TestBIOAI-2)
+add_test(NAME TestBIOAI-2 COMMAND TestBIOAI-2)
 
 
 
