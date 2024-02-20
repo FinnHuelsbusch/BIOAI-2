@@ -51,48 +51,47 @@ bool isSolutionValid(Genome genome, Problem_Instance problem_instance){
     return true;
 }
 
-double evaluate_genome(Genome genome, Problem_Instance problem_instance){
+double evaluate_genome(const Genome& genome, const Problem_Instance& problem_instance) {
     int combined_penalty = 0;
     int combined_trip_time = 0;
-    for (int nurse_id = 0; nurse_id < genome.size(); nurse_id++) {
-        Journey nurse_journey = genome[nurse_id];
+
+    const auto& travel_time = problem_instance.travel_time;
+
+    for (const Journey& nurse_journey : genome) {
         int nurse_trip_time = 0;
         int nurse_used_capacity = 0;
-        for (int j = 0; j < nurse_journey.size(); j++) {
-            int patient_id = nurse_journey[j] ;
-            int previous_patient_id = nurse_journey[j - 1];
-            if (j == 0) {
-                nurse_trip_time += problem_instance.travel_time[0][patient_id];
+
+        for (size_t j = 0; j < nurse_journey.size(); j++) {
+            int patient_id = nurse_journey[j];
+            int previous_patient_id = (j == 0) ? 0 : nurse_journey[j - 1];
+
+            nurse_trip_time += (j == 0) ? travel_time[0][patient_id] : travel_time[previous_patient_id][patient_id];
+            nurse_trip_time = std::max(nurse_trip_time, problem_instance.patients.at(patient_id).start_time);
+            nurse_trip_time += problem_instance.patients.at(patient_id).care_time;
+
+            if (nurse_trip_time > problem_instance.patients.at(patient_id).end_time) {
+                combined_penalty += nurse_trip_time - problem_instance.patients.at(patient_id).end_time;
             }
-            else {
-                nurse_trip_time += problem_instance.travel_time[previous_patient_id][patient_id];
-            }
-            if (nurse_trip_time < problem_instance.patients[patient_id].start_time) {
-                nurse_trip_time = problem_instance.patients[patient_id].start_time;
-            }
-            nurse_trip_time += problem_instance.patients[patient_id].care_time;
-            if (nurse_trip_time > problem_instance.patients[patient_id].end_time) {
-                combined_penalty += nurse_trip_time - problem_instance.patients[patient_id].end_time;
-            }
-            nurse_used_capacity += problem_instance.patients[patient_id].demand;
+
+            nurse_used_capacity += problem_instance.patients.at(patient_id).demand;
             if (nurse_used_capacity > problem_instance.nurse_capacity) {
-                // time 10 as the range is smaller than the time constraint penalty
                 combined_penalty += (nurse_used_capacity - problem_instance.nurse_capacity) * 100;
             }
         }
-        // add the driving time from the last patient to the depot if there is at least one patient
-        if (nurse_journey.size() > 0) {
-            nurse_trip_time += problem_instance.travel_time[nurse_journey[nurse_journey.size()-1]][0];
-        }
-        if (nurse_trip_time > problem_instance.depot.return_time) {
-            combined_penalty += nurse_trip_time - problem_instance.depot.return_time;
-        }
-        combined_trip_time += nurse_trip_time;
 
+        // add the driving time from the last patient to the depot if there is at least one patient
+        if (!nurse_journey.empty()) {
+            nurse_trip_time += travel_time[nurse_journey.back()][0];
+        }
+
+        combined_penalty += std::max(0, nurse_trip_time - problem_instance.depot.return_time);
+        combined_trip_time += nurse_trip_time;
     }
+
     double fitness = -combined_trip_time - (combined_penalty * 100000.0);
     return fitness;
 }
+
 
 Population initialize_random_population(Problem_Instance problem_instance, Config config){
     Population pop = std::vector<Individual>();
