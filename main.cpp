@@ -113,22 +113,28 @@ int main()
     // parent selection
     function_parameters roulette_wheel_selection_configuration_params = {};
     function_parameters tournament_selection_configuration_params = {{"tournament_size", 5}};
+    parent_selection_configuration tournament_selection_configuration = {tournament_selection, tournament_selection_configuration_params};
     parent_selection_configuration roulette_wheel_selection_configuration = {roulette_wheel_selection, tournament_selection_configuration_params};
     // crossover
     crossover_configuration order1Crossover_configuration = {{order1Crossover, 0.8}};
     crossover_configuration partiallyMappedCrossover_configuration = {{partiallyMappedCrossover, 0.8}};
     crossover_configuration edgeRecombination_configuration = {{edgeRecombination, 0.8}};
     // mutation
-    function_parameters reassignOnePatient_params;
-    mutation_configuration reassignOnePatient_configuration = {{reassignOnePatient, reassignOnePatient_params, 1.0}};
+    function_parameters empty_params;
+    mutation_configuration reassignOnePatient_configuration = {{reassignOnePatient, empty_params, 2.0}};
+    mutation_configuration everyMutation_configuration = {{reassignOnePatient, empty_params, 0.2}, 
+                                                        {insertWithinJourney, empty_params, 0.2},
+                                                        {swapBetweenJourneys, empty_params, 0.2},
+                                                        {swapWithinJourney, empty_params, 0.2},
+                                                        {twoOpt, empty_params, 0.01}};
     // survivor selection
     function_parameters full_replacement_params;
     survivor_selection_configuration full_replacement_configuration = {full_replacement, full_replacement_params};
 
     
     Config config = Config(10000, 300, true, 
-        roulette_wheel_selection_configuration, 
-        edgeRecombination_configuration, 
+        tournament_selection_configuration, 
+        partiallyMappedCrossover_configuration, 
         reassignOnePatient_configuration, 
         full_replacement_configuration
     );
