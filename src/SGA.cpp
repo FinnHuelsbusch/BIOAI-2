@@ -77,7 +77,7 @@ double evaluate_genome(Genome genome, Problem_Instance problem_instance){
             nurse_used_capacity += problem_instance.patients[patient_id].demand;
             if (nurse_used_capacity > problem_instance.nurse_capacity) {
                 // time 10 as the range is smaller than the time constraint penalty
-                combined_penalty += (nurse_used_capacity - problem_instance.nurse_capacity) * 10;
+                combined_penalty += (nurse_used_capacity - problem_instance.nurse_capacity) * 100;
             }
         }
         // add the driving time from the last patient to the depot if there is at least one patient
