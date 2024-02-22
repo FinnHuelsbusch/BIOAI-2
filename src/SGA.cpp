@@ -132,6 +132,78 @@ Population initialize_random_population(Problem_Instance problem_instance, Confi
 
 }
 
+Population initialize_feasible_population(Problem_Instance problem_instance, Config config){
+    Population pop = std::vector<Individual>();
+    pop.reserve(config.population_size);
+    // Seed the random number generator
+    RandomGenerator& rng = RandomGenerator::getInstance();
+
+    std::map<int, std::vector<const Patient*>> Patients_by_startTime;
+    for (const auto& [id, patient] : problem_instance.patients) {
+        Patients_by_startTime[patient.start_time].push_back(&patient);
+    }
+    std::vector<int> start_times;
+    for (const auto& [start_time, patients] : Patients_by_startTime) {
+        start_times.push_back(start_time);
+    }
+    // sort the start times
+    std::sort(start_times.begin(), start_times.end());
+
+
+    for (int i = 0; i < config.population_size; i++) {
+        // copy the  Patients_by_startTime 
+        std::map<int, std::vector<const Patient*>> Patients_by_startTime_copy(Patients_by_startTime.begin(), Patients_by_startTime.end());
+        // init genome with number of nurses x empty vector
+        Genome genome = std::vector<std::vector<int>>(problem_instance.number_of_nurses);
+        int current_start_time_index = 0;
+        int current_start_time = start_times[current_start_time_index];
+        int index;
+
+        for(int j = 0; i < problem_instance.patients.size(); j++){
+
+            index = rng.generateRandomInt(0, Patients_by_startTime_copy[current_start_time].size() - 1);
+            const Patient* patient = Patients_by_startTime_copy[current_start_time][index];
+            Patients_by_startTime_copy[current_start_time].erase(Patients_by_startTime_copy[current_start_time].begin() + index);
+            // insert patient in genome
+            bool inserted = false;
+            for (int k = 0; k < genome.size(); k++) {
+                int usedCapacity = std::accumulate(genome[k].begin(), genome[k].end(), 0, [&](int sum, int patient_id) {
+                    return sum + problem_instance.patients.at(patient_id).demand;
+                });
+
+                if (genome[k].empty() || (patient->start_time > problem_instance.patients.at(genome[k][genome[k].size() - 1]).end_time && usedCapacity + patient->demand <= problem_instance.nurse_capacity)) {
+                    genome[k].push_back(patient->id);
+                    inserted = true;
+                    break;
+                }
+            }
+            if (!inserted) {
+                // randomly insert the patient in a nurse
+                int nurse_id = rng.generateRandomInt(0, genome.size() - 1);
+                genome[nurse_id].push_back(patient->id);
+            }
+            
+            // check if the current start time is empty
+            if(Patients_by_startTime_copy[current_start_time].size() == 0){
+                // remove the current start time from the map
+                Patients_by_startTime_copy.erase(current_start_time);
+                // check if the map is empty
+                if(Patients_by_startTime_copy.size() == 0){
+                    break;
+                }
+                current_start_time_index++;
+                current_start_time = start_times[current_start_time_index];
+            }
+        }
+        // Create the Individual
+        Individual individual = {genome, evaluate_genome(genome, problem_instance)};
+        pop.push_back(individual);
+    }
+    return pop;
+
+
+}
+
 double getTotalTravelTime(const Genome& genome, const Problem_Instance& problem_instance){
     double total_travel_time = 0;
     for (Journey nurse_journey : genome) {
