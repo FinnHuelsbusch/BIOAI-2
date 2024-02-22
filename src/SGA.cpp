@@ -6,7 +6,7 @@
 #include <iostream>
 
 
-bool isSolutionValid(Genome genome, Problem_Instance problem_instance){
+bool isSolutionValid(const Genome& genome, const Problem_Instance& problem_instance){
 
     for (int nurse_id = 0; nurse_id < genome.size(); nurse_id++) {
         Journey nurse_journey = genome[nurse_id];
@@ -21,15 +21,15 @@ bool isSolutionValid(Genome genome, Problem_Instance problem_instance){
             else {
                 total_time_spent += problem_instance.travel_time[previous_patient_id][patient_id];
             }
-            if (total_time_spent < problem_instance.patients[patient_id].start_time) {
-                total_time_spent = problem_instance.patients[patient_id].start_time;
+            if (total_time_spent < problem_instance.patients.at(patient_id).start_time) {
+                total_time_spent = problem_instance.patients.at(patient_id).start_time;
             }
-            total_time_spent += problem_instance.patients[patient_id].care_time;
-            if (total_time_spent > problem_instance.patients[patient_id].end_time) {
+            total_time_spent += problem_instance.patients.at(patient_id).care_time;
+            if (total_time_spent > problem_instance.patients.at(patient_id).end_time) {
                 std::cout << "Patient " << patient_id << " treatment finishes too late" << std::endl;
                 return false;
             }
-            total_demand += problem_instance.patients[patient_id].demand;
+            total_demand += problem_instance.patients.at(patient_id).demand;
             if (total_demand > problem_instance.nurse_capacity) {
                 std::cout << "Nurse " << nurse_id << " exceeds the capacity" << std::endl;
                 return false;

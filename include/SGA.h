@@ -1,7 +1,7 @@
 #pragma once
 #include "structures.h"
 
-bool isSolutionValid(Genome genome, Problem_Instance problem_instance); 
+bool isSolutionValid(const Genome& genome, const Problem_Instance& problem_instance); 
 double evaluate_genome(const Genome& genome, const Problem_Instance& problem_instance);
 Population initialize_random_population(Problem_Instance problem_instance, Config config);
 Population initialize_feasible_population(Problem_Instance problem_instance, Config config);
