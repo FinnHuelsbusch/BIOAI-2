@@ -3,8 +3,8 @@
 #include "structures.h"
 
 
-Genome reassignOnePatient(Genome& genome, const function_parameters& parameters);
-Genome swapWithinJourney(Genome& genome, const function_parameters& parameters);
-Genome swapBetweenJourneys(Genome& genome, const function_parameters& parameters);
-Genome insertWithinJourney(Genome& genome, const function_parameters& parameters);
-Genome twoOpt(Genome& genome, const function_parameters& parameters);
+auto reassignOnePatient(Genome& genome, const function_parameters& parameters) -> Genome;
+auto swapWithinJourney(Genome& genome, const function_parameters& parameters) -> Genome;
+auto swapBetweenJourneys(Genome& genome, const function_parameters& parameters) -> Genome;
+auto insertWithinJourney(Genome& genome, const function_parameters& parameters) -> Genome;
+auto twoOpt(Genome& genome, const function_parameters& parameters) -> Genome;

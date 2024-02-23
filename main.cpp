@@ -18,11 +18,11 @@
 
 using json = nlohmann::json;
 
-Problem_Instance load_instance(const std::string& filename) {
-    std::ifstream i("/workspaces/BIOAI-2/train/" + filename);
-    json data = json::parse(i);
-    const string instance_name = data["instance_name"];
-    std::cout << "Loading instance: " << instance_name << std::endl;
+auto load_instance(const std::string& filename) -> Problem_Instance {
+    std::ifstream inputFileStream("/workspaces/BIOAI-2/train/" + filename);
+    json data = json::parse(inputFileStream);
+    const std::string instance_name = data["instance_name"];
+    std::cout << "Loading instance: " << instance_name << '\n';
     // load the depot
     Depot depot = {
         data["depot"]["x_coord"], 
@@ -31,7 +31,7 @@ Problem_Instance load_instance(const std::string& filename) {
     };
     // load the patients
     const int number_of_patients = data["patients"].size();
-    std::cout << "Number of patients: " << number_of_patients << std::endl;
+    std::cout << "Number of patients: " << number_of_patients << '\n';
     std::unordered_map<int, Patient> patients;
     patients.reserve(number_of_patients);
     for (const auto& entry : data["patients"].items()) {
@@ -55,7 +55,7 @@ Problem_Instance load_instance(const std::string& filename) {
     for(const auto& row : data["travel_times"]){
         std::vector<double> helper;
         helper.reserve(number_of_patients+1);
-        for(const double& travel_time: row){
+        for(const auto& travel_time: row){
             helper.push_back(travel_time); 
         }
         travel_time_matrix.push_back(helper);
@@ -70,11 +70,11 @@ Problem_Instance load_instance(const std::string& filename) {
         patients, 
         travel_time_matrix
     };
-    std::cout << "Done loading instance: " << instance_name << std::endl;
+    std::cout << "Done loading instance: " << instance_name << '\n';
     return problem_instance;
 }
 
-int main()
+auto main() -> int
 {   
     Problem_Instance problem_instance = load_instance("train_0.json");
     Genome genome = {
@@ -104,9 +104,9 @@ int main()
         {93, 94, 95, 96},
         {97, 100, 99, 98}
     };
-    std::cout << "Handcrafted genome is valid: " << isSolutionValid(genome, problem_instance) << std::endl;
-    std::cout << "Handcrafted genome fitness: " << evaluate_genome(genome, problem_instance) << std::endl;
-    std::cout << "Handcrafted genome total travel time: " << getTotalTravelTime(genome, problem_instance) << std::endl;
+    std::cout << "Handcrafted genome is valid: " << isSolutionValid(genome, problem_instance) << '\n';
+    std::cout << "Handcrafted genome fitness: " << evaluate_genome(genome, problem_instance) << '\n';
+    std::cout << "Handcrafted genome total travel time: " << getTotalTravelTime(genome, problem_instance) << '\n';
 
     RandomGenerator& rng = RandomGenerator::getInstance();
     rng.setSeed(42);

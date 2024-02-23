@@ -3,9 +3,9 @@
 #include <iostream>
 RandomGenerator* RandomGenerator::instance = nullptr;
 
-RandomGenerator::RandomGenerator() : isSeeded(false) {}
+RandomGenerator::RandomGenerator() = default;
 
-RandomGenerator &RandomGenerator::getInstance()
+auto RandomGenerator::getInstance() -> RandomGenerator &
 {
     if (instance == nullptr)
     {
@@ -23,16 +23,16 @@ void RandomGenerator::setSeed(unsigned int seed)
     }
     else
     {
-        std::cout << "The PRNG was already seeded. Ignoring new seed" << std::endl;
+        std::cout << "The PRNG was already seeded. Ignoring new seed" << '\n';
     }
 }
 
-int RandomGenerator::generateRandomInt(int min, int max)
+auto RandomGenerator::generateRandomInt(int min, int max) -> int
 {
     if (!isSeeded)
     {
-        std::random_device rd;
-        setSeed(rd());
+        std::random_device randomDevice;
+        setSeed(randomDevice());
     }
 
     std::uniform_int_distribution<int> distribution(min, max);
@@ -40,12 +40,12 @@ int RandomGenerator::generateRandomInt(int min, int max)
     return distribution(generator);
 }
 
-double RandomGenerator::generateRandomDouble(double min, double max)
+auto RandomGenerator::generateRandomDouble(double min, double max) -> double
 {
     if (!isSeeded)
     {
-        std::random_device rd;
-        setSeed(rd());
+        std::random_device randomDevice;
+        setSeed(randomDevice());
     }
 
     std::uniform_real_distribution<double> distribution(min, max);
@@ -55,8 +55,8 @@ double RandomGenerator::generateRandomDouble(double min, double max)
 void RandomGenerator::shuffle(std::vector<int> &elements){
     if (!isSeeded)
     {
-        std::random_device rd;
-        setSeed(rd());
+        std::random_device randomDevice;
+        setSeed(randomDevice());
     }
 
     std::shuffle(elements.begin(), elements.end(), generator);

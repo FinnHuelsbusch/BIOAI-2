@@ -4,12 +4,13 @@
 #include "RandomGenerator.h"
 #include "utils.h"
 
-
-Population roulette_wheel_selection(const Population& population, const function_parameters& parameters) {
+auto roulette_wheel_selection(const Population &population, const function_parameters &parameters) -> Population
+{
     Population parents;
     std::vector<double> fitnessValues;
-    for (int i = 0; i < population.size(); i++) {
-        fitnessValues.push_back(population[i].fitness);
+    for (const Individual &Individual : population)
+    {
+        fitnessValues.push_back(Individual.fitness);
     }
     double minFitness = *std::min_element(fitnessValues.begin(), fitnessValues.end());
 
@@ -23,19 +24,20 @@ Population roulette_wheel_selection(const Population& population, const function
 
     // Calculate the selection probabilities
     std::vector<double> probabilities;
-    for (double fitness : shiftedFitnessValues) {
+    probabilities.reserve(shiftedFitnessValues.size());
+    for (double fitness : shiftedFitnessValues)
+    {
         probabilities.push_back(fitness / totalFitness);
     }
 
-    
     RandomGenerator& rng = RandomGenerator::getInstance();
     // Perform roulette wheel selection
     for (int i = 0; i < population.size(); i++) {
-        double r = rng.generateRandomDouble(0, 1);
+        double randomValue = rng.generateRandomDouble(0, 1);
         double cumulativeProbability = 0;
         for (int j = 0; j < population.size(); j++) {
             cumulativeProbability += probabilities[j];
-            if (r <= cumulativeProbability) {
+            if (randomValue <= cumulativeProbability) {
                 parents.push_back(population[j]);
                 break;
             }
@@ -44,7 +46,8 @@ Population roulette_wheel_selection(const Population& population, const function
     return parents;
 }
 
-Population tournament_selection(const Population& population, const function_parameters& parameters) {
+auto tournament_selection(const Population &population, const function_parameters &parameters) -> Population
+{
     int tournamentSize = std::get<int>(parameters.at("tournament_size"));
     Population parents;
     RandomGenerator& rng = RandomGenerator::getInstance();

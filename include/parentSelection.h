@@ -2,7 +2,7 @@
 #include "structures.h"
 
 
-Population no_selection(const Population& population, const function_parameters& parameters);
-Population roulette_wheel_selection(const Population& population, const function_parameters& parameters);
-Population tournament_selection(const Population& population, const function_parameters& parameters);
+auto no_selection(const Population& population, const function_parameters& parameters) -> Population;
+auto roulette_wheel_selection(const Population& population, const function_parameters& parameters) -> Population;
+auto tournament_selection(const Population& population, const function_parameters& parameters) -> Population;
 

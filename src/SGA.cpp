@@ -6,8 +6,8 @@
 #include <iostream>
 #include <climits>
 
-
-bool isJourneyValid(const Journey& nurse_journey, const Problem_Instance& problem_instance, bool print_errors){
+auto isJourneyValid(const Journey &nurse_journey, const Problem_Instance &problem_instance, bool print_errors) -> bool
+{
     if(nurse_journey.empty()){
         return true;
     }
@@ -28,39 +28,40 @@ bool isJourneyValid(const Journey& nurse_journey, const Problem_Instance& proble
         total_time_spent += problem_instance.patients.at(patient_id).care_time;
         if (total_time_spent > problem_instance.patients.at(patient_id).end_time) {
             if (print_errors) {
-                std::cout << "Patient " << patient_id << " treatment finishes too late" << std::endl;
+                std::cout << "Patient " << patient_id << " treatment finishes too late" << '\n';
             }
             return false;
         }
         total_demand += problem_instance.patients.at(patient_id).demand;
         if (total_demand > problem_instance.nurse_capacity) {
             if (print_errors) {
-                std::cout << "Nurse exceeds the capacity" << std::endl;
+                std::cout << "Nurse exceeds the capacity" << '\n';
             }
             return false;
         }
     }
     // add the driving time from the last patient to the depot if there is at least one patient
-    if (nurse_journey.size() > 0) {
+    if (nurse_journey.empty()) {
         total_time_spent += problem_instance.travel_time[nurse_journey[nurse_journey.size()-1]][0];
     }
     if (total_time_spent > problem_instance.depot.return_time) {
         if (print_errors) {
-            std::cout << "Nurse exceeds the return time" << std::endl;
+            std::cout << "Nurse exceeds the return time" << '\n';
         }
         return false;
     }
     return true;
 }
 
-bool isSolutionValid(const Genome& genome, const Problem_Instance& problem_instance, bool print_errors){
+auto isSolutionValid(const Genome &genome, const Problem_Instance &problem_instance, bool print_errors) -> bool
+{
     // validate that every patient is visited exactly once
     std::map<int, bool> visited_patients;
     for (const Journey& nurse_journey : genome) {
         for (int patient_id : nurse_journey) {
             if (visited_patients[patient_id]) {
                 if (print_errors) {
-                    std::cout << "Patient " << patient_id << " is visited more than once" << std::endl;
+                    std::cout << "Patient " << patient_id << " is visited more than once" << '\n';
                 }
                 return false;
             }
@@ -71,23 +72,24 @@ bool isSolutionValid(const Genome& genome, const Problem_Instance& problem_insta
     for (const auto& [id, patient] : problem_instance.patients) {
         if (!visited_patients[id]) {
             if (print_errors) {
-                std::cout << "Patient " << id << " is not visited" << std::endl;
+                std::cout << "Patient " << id << " is not visited" << '\n';
             }
             return false;
         }
     }
 
     for (int nurse_id = 0; nurse_id < genome.size(); nurse_id++) {
-        Journey nurse_journey = genome[nurse_id];
+        const Journey &nurse_journey = genome[nurse_id];
         if (!isJourneyValid(nurse_journey, problem_instance, print_errors)) {
-            std::cout << "Nurse " << nurse_id << " journey is invalid" << std::endl;
+            std::cout << "Nurse " << nurse_id << " journey is invalid" << '\n';
             return false;
         }
     }
     return true;
 }
 
-double evaluate_genome(const Genome& genome, const Problem_Instance& problem_instance) {
+auto evaluate_genome(const Genome &genome, const Problem_Instance &problem_instance) -> double
+{
     int combined_penalty = 0;
     int combined_trip_time = 0;
 
@@ -131,35 +133,35 @@ double evaluate_genome(const Genome& genome, const Problem_Instance& problem_ins
     return fitness;
 }
 
-
-Population initialize_random_population(const Problem_Instance& problem_instance, const Config& config){
+auto initialize_random_population(const Problem_Instance &problem_instance, const Config &config) -> Population
+{
     Population pop = std::vector<Individual>();
     pop.reserve(config.population_size);
     // Seed the random number generator
     RandomGenerator& rng = RandomGenerator::getInstance();
     for (int i = 0; i < config.population_size; i++) {
        // Generate patient
-        std::vector<int> IDs = std::vector<int>();
-        IDs.reserve(problem_instance.patients.size());
+        std::vector<int> PatientIDs = std::vector<int>();
+        PatientIDs.reserve(problem_instance.patients.size());
 
-        for (std::pair<int, Patient> kv : problem_instance.patients){
-            IDs.push_back(kv.first);
+        for (std::pair<int, Patient> PatientID_Patient : problem_instance.patients){
+            PatientIDs.push_back(PatientID_Patient.first);
         }
-        rng.shuffle(IDs);
+        rng.shuffle(PatientIDs);
 
         // Distribute the patients over the nurses
 
         Genome genome = std::vector<std::vector<int>>(problem_instance.number_of_nurses);
         
-        // pop from IDs until empty
+        // pop from PatientIDs until empty
         for (int i = 0; i < problem_instance.patients.size(); i++) {
-            int id = IDs[i];
+            int patientID = PatientIDs[i];
             if (config.initial_population_distirbute_patients_equally) {
                 int nurse_id = i % problem_instance.number_of_nurses;
-                genome[nurse_id].push_back(id);
+                genome[nurse_id].push_back(patientID);
             } else {
                 int nurse_id = rng.generateRandomInt(0, problem_instance.number_of_nurses - 1);
-                genome[nurse_id].push_back(id);
+                genome[nurse_id].push_back(patientID);
             }
         }
         // Create the Individual
@@ -168,10 +170,10 @@ Population initialize_random_population(const Problem_Instance& problem_instance
 
         }
     return pop;
-
 }
 
-Population initialize_feasible_population(const Problem_Instance& problem_instance, const Config& config){
+auto initialize_feasible_population(const Problem_Instance &problem_instance, const Config &config) -> Population
+{
     Population pop = std::vector<Individual>();
     pop.reserve(config.population_size);
     // Seed the random number generator
@@ -182,7 +184,9 @@ Population initialize_feasible_population(const Problem_Instance& problem_instan
         Patients_by_endTime[patient.end_time].push_back(&patient);
     }
     std::vector<int> start_times;
-    for (const auto& [start_time, patients] : Patients_by_endTime) {
+    start_times.reserve(Patients_by_endTime.size());
+    for (const auto &[start_time, patients] : Patients_by_endTime)
+    {
         start_times.push_back(start_time);
     }
     // sort the start times
@@ -230,11 +234,13 @@ Population initialize_feasible_population(const Problem_Instance& problem_instan
             }
             
             // check if the current start time is empty
-            if(Patients_by_endTime_copy[current_start_time].size() == 0){
+            if (Patients_by_endTime_copy[current_start_time].empty())
+            {
                 // remove the current start time from the map
                 Patients_by_endTime_copy.erase(current_start_time);
                 // check if the map is empty
-                if(Patients_by_endTime_copy.size() == 0){
+                if (Patients_by_endTime_copy.empty())
+                {
                     break;
                 }
                 current_start_time_index++;
@@ -251,11 +257,10 @@ Population initialize_feasible_population(const Problem_Instance& problem_instan
         }
     }
     return pop;
-
-
 }
 
-double getTotalTravelTime(const Genome& genome, const Problem_Instance& problem_instance){
+auto getTotalTravelTime(const Genome &genome, const Problem_Instance &problem_instance) -> double
+{
     double total_travel_time = 0;
     for (Journey nurse_journey : genome) {
         for (int i = 0; i < nurse_journey.size(); i++) {
@@ -269,18 +274,20 @@ double getTotalTravelTime(const Genome& genome, const Problem_Instance& problem_
             }
         }
         // add the driving time from the last patient to the depot if there is at least one patient
-        if (nurse_journey.size() > 0) {
+        if (!nurse_journey.empty())
+        {
             total_travel_time += problem_instance.travel_time[nurse_journey[nurse_journey.size()-1]][0];
         }
     }
     return total_travel_time;
 }
 
-
-Population applyCrossover(Population& parents, std::vector<std::pair<crossover_function, double>>& crossover, Problem_Instance& problem_instance){
+auto applyCrossover(Population &parents, std::vector<std::pair<crossover_function, double>> &crossover, Problem_Instance &problem_instance) -> Population
+{
     Population children = std::vector<Individual>();
     children.reserve(parents.size());
-    for (Individual parent : parents) {
+    for (const Individual &parent : parents)
+    {
         children.push_back(parent);
     }
     RandomGenerator& rng = RandomGenerator::getInstance();
@@ -309,7 +316,8 @@ Population applyCrossover(Population& parents, std::vector<std::pair<crossover_f
     return children;
 }
 
-Population applyMutation(Population& population, std::vector<std::tuple<mutation_function, function_parameters&, double>>& mutation, Problem_Instance& problem_instance){
+auto applyMutation(Population &population, std::vector<std::tuple<mutation_function, function_parameters &, double>> &mutation, Problem_Instance &problem_instance) -> Population
+{
     RandomGenerator& rng = RandomGenerator::getInstance();
     for (std::tuple<mutation_function, function_parameters, double> mutation_tuple : mutation) {
         mutation_function mutation_function = std::get<0>(mutation_tuple);
@@ -330,32 +338,31 @@ Population applyMutation(Population& population, std::vector<std::tuple<mutation
 void SGA(Problem_Instance& problem_instance, Config& config){
 
     Population pop = initialize_feasible_population(problem_instance, config);
-    // check if population only contains valid solutions 
-    bool valid = std::all_of(pop.begin(), pop.end(), [&](Individual individual) {
-        return isSolutionValid(individual.genome, problem_instance);
-    });
+    // check if population only contains valid solutions
+    bool valid = std::all_of(pop.begin(), pop.end(), [&](const Individual &individual)
+                             { return isSolutionValid(individual.genome, problem_instance); });
     if (valid) {
-        std::cout << "The initial population only contains valid solutions" << std::endl;
+        std::cout << "The initial population only contains valid solutions" << '\n';
     }
     else {
-        std::cout << "The initial population contains invalid solutions" << std::endl;
+        std::cout << "The initial population contains invalid solutions" << '\n';
     }
     RandomGenerator& rng = RandomGenerator::getInstance();
     for (int current_generation = 0; current_generation < config.number_of_generations; current_generation++) {
         // Average fitness
-        double average_fitness = std::accumulate(pop.begin(), pop.end(), 0.0, [](double sum, Individual individual) {
-            return sum + individual.fitness;
-        }) / pop.size();
-        std::cout << "Generation " << current_generation << " average population fitness: " << average_fitness << std::endl;
+        double average_fitness = std::accumulate(pop.begin(), pop.end(), 0.0, [](double sum, const Individual &individual)
+                                                 { return sum + individual.fitness; }) /
+                                 pop.size();
+        std::cout << "Generation " << current_generation << " average population fitness: " << average_fitness << '\n';
 
         // Parent selection 
         std::cout << "Parent selection";
         Population parents = config.parent_selection.first(pop, config.parent_selection.second);
         // Average parent fitness
-        double average_parent_fitness = std::accumulate(parents.begin(), parents.end(), 0.0, [](double sum, Individual individual) {
-            return sum + individual.fitness;
-        }) / parents.size();
-        std::cout << "Generation " << current_generation << " average parent fitness: " << average_parent_fitness << std::endl;
+        double average_parent_fitness = std::accumulate(parents.begin(), parents.end(), 0.0, [](double sum, const Individual &individual)
+                                                        { return sum + individual.fitness; }) /
+                                        parents.size();
+        std::cout << "Generation " << current_generation << " average parent fitness: " << average_parent_fitness << '\n';
         // Crossover
         std::cout << "Crossover";
         Population children = applyCrossover(parents, config.crossover, problem_instance);
@@ -363,30 +370,29 @@ void SGA(Problem_Instance& problem_instance, Config& config){
         std::cout << "Mutation";
         children = applyMutation(children, config.mutation, problem_instance);
         // log children fitness
-        double average_children_fitness = std::accumulate(children.begin(), children.end(), 0.0, [](double sum, Individual individual) {
+        double average_children_fitness = std::accumulate(children.begin(), children.end(), 0.0, [](double sum, const Individual &individual) {
             return sum + individual.fitness;
         }) / children.size();
-        std::cout << "Generation " << current_generation << " average children fitness: " << average_children_fitness << std::endl;
+        std::cout << "Generation " << current_generation << " average children fitness: " << average_children_fitness << '\n';
         // Survivor selection
         std::cout << "Survivor selection";
         pop = config.survivor_selection.first(pop, children, config.survivor_selection.second);
         pop = sort_population(pop, false);
-        std::cout << "Generation " << current_generation << "\nBest fitness: " << pop[0].fitness << "\nWorst fitness: " << pop[pop.size()-1].fitness << std::endl;
-        
+        std::cout << "Generation " << current_generation << "\nBest fitness: " << pop[0].fitness << "\nWorst fitness: " << pop[pop.size() - 1].fitness << '\n';
     }
     valid = isSolutionValid(pop[0].genome, problem_instance);
     if (valid) {
-        std::cout << "The solution is valid" << std::endl;
+        std::cout << "The solution is valid" << '\n';
     }
     else {
-        std::cout << "The solution is invalid" << std::endl;
+        std::cout << "The solution is invalid" << '\n';
     }
     double total_travel_time = getTotalTravelTime(pop[0].genome, problem_instance);
     if (total_travel_time < problem_instance.benchmark) {
-        std::cout << "The solution is " << problem_instance.benchmark - total_travel_time << " time units better than the benchmark" << std::endl;
+        std::cout << "The solution is " << problem_instance.benchmark - total_travel_time << " time units better than the benchmark" << '\n';
     }
     else {
-        std::cout << "The solution is " << total_travel_time - problem_instance.benchmark << " time units worse than the benchmark" << std::endl;
+        std::cout << "The solution is " << total_travel_time - problem_instance.benchmark << " time units worse than the benchmark" << '\n';
     }
 
     

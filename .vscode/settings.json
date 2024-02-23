@@ -65,5 +65,20 @@
         "mutex": "cpp",
         "stop_token": "cpp",
         "thread": "cpp"
-    }
+    },
+    "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+    "C_Cpp.codeAnalysis.exclude": {
+        "build/**": true,
+        "test/**": true,
+    },
+    "C_Cpp.codeAnalysis.clangTidy.checks.enabled": [
+        "modernize-*",
+        "readability-*",
+        "google-*",
+        "performance-*",
+        "readability-identifier-naming"
+    ],
+    "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
+        "readability-magic-numbers"
+    ]
 }
