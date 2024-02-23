@@ -12,6 +12,7 @@
 #include "crossover.h"
 #include "mutation.h"
 #include "survivorSelection.h"
+#include <climits>
 
 
 
@@ -125,19 +126,23 @@ int main()
     mutation_configuration everyMutation_configuration = {{reassignOnePatient, empty_params, 0.2}, 
                                                         {insertWithinJourney, empty_params, 0.2},
                                                         {swapBetweenJourneys, empty_params, 0.2},
-                                                        {swapWithinJourney, empty_params, 0.2},
-                                                        {twoOpt, empty_params, 0.01}};
+                                                        {swapWithinJourney, empty_params, 0.2}};
     // survivor selection
     function_parameters full_replacement_params;
     survivor_selection_configuration full_replacement_configuration = {full_replacement, full_replacement_params};
+    survivor_selection_configuration roulette_wheel_survivor_selection_configuration = {roulette_wheel_replacement, full_replacement_params};
 
     
-    Config config = Config(10000, 300, true, 
+    Config config = Config(1000, 1000, true, 
         tournament_selection_configuration, 
         partiallyMappedCrossover_configuration, 
         reassignOnePatient_configuration, 
-        full_replacement_configuration
+        roulette_wheel_survivor_selection_configuration
     );
-    SGA(problem_instance,config);
+
+    SGA(problem_instance, config);
+
+
+
     return 0;
 }
