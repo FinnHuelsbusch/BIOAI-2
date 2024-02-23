@@ -2,89 +2,89 @@
 #include "RandomGenerator.h"
 #include <iostream>
 
-auto reassignOnePatient(Genome &genome, const function_parameters &parameters) -> Genome
+auto reassignOnePatient(Genome &genome, const FunctionParameters &parameters) -> Genome
 {
 
     RandomGenerator& rng = RandomGenerator::getInstance();
-    int source_nurse = rng.generateRandomInt(0, genome.size() - 1);
+    int sourceNurse = rng.generateRandomInt(0, genome.size() - 1);
     // check that the source has at least one patient
-    if (genome[source_nurse].empty())
+    if (genome[sourceNurse].empty())
     {
         return reassignOnePatient(genome, parameters);
     }
-    int destination_nurse ;
+    int destinationNurse ;
     do {
-        destination_nurse = rng.generateRandomInt(0, genome.size() - 1);
-    } while (destination_nurse == source_nurse);
-    int patient_index = rng.generateRandomInt(0, genome[source_nurse].size() - 1);
-    int patient = genome[source_nurse][patient_index];
-    genome[source_nurse].erase(genome[source_nurse].begin() + patient_index); 
+        destinationNurse = rng.generateRandomInt(0, genome.size() - 1);
+    } while (destinationNurse == sourceNurse);
+    int patientIndex = rng.generateRandomInt(0, genome[sourceNurse].size() - 1);
+    int patient = genome[sourceNurse][patientIndex];
+    genome[sourceNurse].erase(genome[sourceNurse].begin() + patientIndex); 
     //randomly sample insertion point
-    int insertion_point;
-    if (genome[destination_nurse].empty())
+    int insertionPoint;
+    if (genome[destinationNurse].empty())
     {
-        insertion_point = 0;
+        insertionPoint = 0;
     }
     else
     {
-        insertion_point = rng.generateRandomInt(0, genome[destination_nurse].size());
+        insertionPoint = rng.generateRandomInt(0, genome[destinationNurse].size());
     }
-    genome[destination_nurse].insert(genome[destination_nurse].begin() + insertion_point, patient);
+    genome[destinationNurse].insert(genome[destinationNurse].begin() + insertionPoint, patient);
     return genome;
 }
 
-auto swapWithinJourney(Genome &genome, const function_parameters &parameters) -> Genome
+auto swapWithinJourney(Genome &genome, const FunctionParameters &parameters) -> Genome
 {
     RandomGenerator& rng = RandomGenerator::getInstance();
     int nurse;
     do{
         nurse = rng.generateRandomInt(0, genome.size() - 1);
     }while(genome[nurse].size() < 2);
-    int first_patient_index = rng.generateRandomInt(0, genome[nurse].size() - 1);
-    int second_patient_index;
+    int firstPatientIndex = rng.generateRandomInt(0, genome[nurse].size() - 1);
+    int secondPatientIndex;
     do {
-        second_patient_index = rng.generateRandomInt(0, genome[nurse].size() - 1);
-    } while (second_patient_index == first_patient_index);
-    std::swap(genome[nurse][first_patient_index], genome[nurse][second_patient_index]);
+        secondPatientIndex = rng.generateRandomInt(0, genome[nurse].size() - 1);
+    } while (secondPatientIndex == firstPatientIndex);
+    std::swap(genome[nurse][firstPatientIndex], genome[nurse][secondPatientIndex]);
     return genome;
 }
 
-auto swapBetweenJourneys(Genome &genome, const function_parameters &parameters) -> Genome
+auto swapBetweenJourneys(Genome &genome, const FunctionParameters &parameters) -> Genome
 {
     RandomGenerator& rng = RandomGenerator::getInstance();
-    int source_nurse;
+    int sourceNurse;
     do {
-        source_nurse = rng.generateRandomInt(0, genome.size() - 1);
-    } while (genome[source_nurse].empty());
-    int destination_nurse;
+        sourceNurse = rng.generateRandomInt(0, genome.size() - 1);
+    } while (genome[sourceNurse].empty());
+    int destinationNurse;
     do {
-        destination_nurse = rng.generateRandomInt(0, genome.size() - 1);
-    } while (destination_nurse == source_nurse || genome[destination_nurse].empty());
-    int patient_index_nurse1 = rng.generateRandomInt(0, genome[source_nurse].size() - 1);
-    int patient_index_nurse2 = rng.generateRandomInt(0, genome[destination_nurse].size() - 1);
-    std::swap(genome[source_nurse][patient_index_nurse1], genome[destination_nurse][patient_index_nurse2]);
+        destinationNurse = rng.generateRandomInt(0, genome.size() - 1);
+    } while (destinationNurse == sourceNurse || genome[destinationNurse].empty());
+    int patientIndexNurse1 = rng.generateRandomInt(0, genome[sourceNurse].size() - 1);
+    int patientIndexNurse2 = rng.generateRandomInt(0, genome[destinationNurse].size() - 1);
+    std::swap(genome[sourceNurse][patientIndexNurse1], genome[destinationNurse][patientIndexNurse2]);
     return genome;
 }
 
-auto insertWithinJourney(Genome &genome, const function_parameters &parameters) -> Genome
+auto insertWithinJourney(Genome &genome, const FunctionParameters &parameters) -> Genome
 {
     RandomGenerator& rng = RandomGenerator::getInstance();
     int nurse;
     do {
         nurse = rng.generateRandomInt(0, genome.size() - 1);
     } while (genome[nurse].size() < 2);
-    int patient_index = rng.generateRandomInt(0, genome[nurse].size() - 1);
-    int patient = genome[nurse][patient_index];
-    int insertion_point = rng.generateRandomInt(0, genome[nurse].size());
+    int patientIndex = rng.generateRandomInt(0, genome[nurse].size() - 1);
+    int patient = genome[nurse][patientIndex];
+    int insertionPoint = rng.generateRandomInt(0, genome[nurse].size());
     // insert patient at insertion point
-    genome[nurse].erase(genome[nurse].begin() + patient_index);
-    genome[nurse].insert(genome[nurse].begin() + insertion_point, patient);
+    genome[nurse].erase(genome[nurse].begin() + patientIndex);
+    genome[nurse].insert(genome[nurse].begin() + insertionPoint, patient);
     return genome;
 }
 
-auto twoOpt(Genome &genome, const function_parameters &parameters) -> Genome
+auto twoOpt(Genome &genome, const FunctionParameters &parameters) -> Genome
 {
-    const Problem_Instance instance = std::get<Problem_Instance>(parameters.at("problem_instance"));
+    const ProblemInstance instance = std::get<ProblemInstance>(parameters.at("problem_instance"));
     RandomGenerator& rng = RandomGenerator::getInstance();
     int nurse;
     std::vector<int> nursesWithMoreThanFourPatients;
@@ -99,39 +99,39 @@ auto twoOpt(Genome &genome, const function_parameters &parameters) -> Genome
     }
 
     nurse = nursesWithMoreThanFourPatients[rng.generateRandomInt(0, nursesWithMoreThanFourPatients.size() - 1)];
-    bool found_improvement;
+    bool foundImprovement;
     do{
         std::cout << "Starting 2-opt" << '\n';
-        found_improvement = false;
+        foundImprovement = false;
         
         for (int i = -1; i <= static_cast<int>(genome[nurse].size() - 2); i++){
             for (int j = i+1; j < genome[nurse].size(); j++){
                 Journey journey = genome[nurse];
-                double old_cost; 
-                double new_cost;
+                double oldCost; 
+                double newCost;
                 if (i == -1) {
                     if (j == genome[nurse].size() - 1) {
-                        old_cost = instance.travel_time[0][journey[i+1]] + instance.travel_time[journey[j]][0];
-                        new_cost = instance.travel_time[0][journey[j]] + instance.travel_time[journey[i+1]][0];
+                        oldCost = instance.travelTime[0][journey[i+1]] + instance.travelTime[journey[j]][0];
+                        newCost = instance.travelTime[0][journey[j]] + instance.travelTime[journey[i+1]][0];
                     } else {
-                        old_cost = instance.travel_time[0][journey[i+1]] + instance.travel_time[journey[j]][journey[j+1]];
-                        new_cost = instance.travel_time[0][journey[j]] + instance.travel_time[journey[i+1]][journey[j+1]];
+                        oldCost = instance.travelTime[0][journey[i+1]] + instance.travelTime[journey[j]][journey[j+1]];
+                        newCost = instance.travelTime[0][journey[j]] + instance.travelTime[journey[i+1]][journey[j+1]];
                     }
                 } else if (j == genome[nurse].size() - 1) {
-                    old_cost = instance.travel_time[journey[i]][journey[i+1]] + instance.travel_time[journey[j]][0];
-                    new_cost = instance.travel_time[journey[i]][journey[j]] + instance.travel_time[journey[i+1]][0];
+                    oldCost = instance.travelTime[journey[i]][journey[i+1]] + instance.travelTime[journey[j]][0];
+                    newCost = instance.travelTime[journey[i]][journey[j]] + instance.travelTime[journey[i+1]][0];
                 } else {
-                    old_cost = instance.travel_time[journey[i]][journey[i+1]] + instance.travel_time[journey[j]][journey[j+1]];
-                    new_cost = instance.travel_time[journey[i]][journey[j]] + instance.travel_time[journey[i+1]][journey[j+1]];
+                    oldCost = instance.travelTime[journey[i]][journey[i+1]] + instance.travelTime[journey[j]][journey[j+1]];
+                    newCost = instance.travelTime[journey[i]][journey[j]] + instance.travelTime[journey[i+1]][journey[j+1]];
                 }     
-                if (new_cost < old_cost) {
+                if (newCost < oldCost) {
                     std::cout << "Found improvement" << '\n';
-                    found_improvement = true;
+                    foundImprovement = true;
                     std::reverse(journey.begin() + i + 1, journey.begin() + j + 1);
                     genome[nurse] = journey;
                 }           
             }
         }
-    }while(found_improvement);
+    }while(foundImprovement);
     return genome;
 }

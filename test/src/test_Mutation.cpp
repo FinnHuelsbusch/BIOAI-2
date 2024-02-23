@@ -285,7 +285,7 @@ TEST_F(MutationTestFixture, twoOpt_standardCase) {
         {4, {4, 0, 0, 0, 0, 2, 2}},
         {5, {5, 0, 0, 0, 0, 0, 2}}
     };
-    std::vector<std::vector<double>> travel_time = {
+    std::vector<std::vector<double>> travelTime = {
         // manhattan distance
         {0, 2, 4, 6, 4, 2},
         {2, 0, 2, 4, 2, 4},
@@ -296,14 +296,14 @@ TEST_F(MutationTestFixture, twoOpt_standardCase) {
         
     };
 
-    Problem_Instance instance = {
-        "test", // instance_name
-        1, // number_of_nurses
-        6, // nurse_capacity
+    ProblemInstance instance = {
+        "test", // instanceName
+        1, // numberOfNurses
+        6, // nurseCapacity
         0.0, // benchmark
         {0, 0, 0}, // depot
         patients, 
-        travel_time
+        travelTime
     };
 
     Genome genome = {{4,2,5,1,3}};
@@ -324,7 +324,7 @@ TEST_F(MutationTestFixture, twoOpt_InputIsOptimal) {
         {4, {4, 0, 0, 0, 0, 2, 2}},
         {5, {5, 0, 0, 0, 0, 0, 2}}
     };
-    std::vector<std::vector<double>> travel_time = {
+    std::vector<std::vector<double>> travelTime = {
         // manhattan distance
         {0, 2, 4, 6, 4, 2},
         {2, 0, 2, 4, 2, 4},
@@ -335,14 +335,14 @@ TEST_F(MutationTestFixture, twoOpt_InputIsOptimal) {
         
     };
 
-    Problem_Instance instance = {
-        "test", // instance_name
-        1, // number_of_nurses
-        6, // nurse_capacity
+    ProblemInstance instance = {
+        "test", // instanceName
+        1, // numberOfNurses
+        6, // nurseCapacity
         0.0, // benchmark
         {0, 0, 0}, // depot
         patients, 
-        travel_time
+        travelTime
     };
 
     Genome genome = {{1,2,3,4,5}};
@@ -363,7 +363,7 @@ TEST_F(MutationTestFixture, twoOpt_oneOptStep) {
         {4, {4, 0, 0, 0, 0, 2, 2}},
         {5, {5, 0, 0, 0, 0, 0, 2}}
     };
-    std::vector<std::vector<double>> travel_time = {
+    std::vector<std::vector<double>> travelTime = {
         // manhattan distance
         {0, 2, 4, 6, 4, 2},
         {2, 0, 2, 4, 2, 4},
@@ -374,14 +374,14 @@ TEST_F(MutationTestFixture, twoOpt_oneOptStep) {
         
     };
 
-    Problem_Instance instance = {
-        "test", // instance_name
-        1, // number_of_nurses
-        6, // nurse_capacity
+    ProblemInstance instance = {
+        "test", // instanceName
+        1, // numberOfNurses
+        6, // nurseCapacity
         0.0, // benchmark
         {0, 0, 0}, // depot
         patients, 
-        travel_time
+        travelTime
     };
 
     Genome genome = {{4,3,2,1,5}};

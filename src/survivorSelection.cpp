@@ -2,16 +2,16 @@
 #include "survivorSelection.h"
 #include <parentSelection.h>
 
-auto full_replacement(const Population &parents, const Population &children, const function_parameters &parameters) -> Population
+auto fullReplacement(const Population &parents, const Population &children, const FunctionParameters &parameters) -> Population
 {
     return children;
 }
 
-auto roulette_wheel_replacement(const Population &parents, const Population &children, const function_parameters &parameters) -> Population
+auto rouletteWheelReplacement(const Population &parents, const Population &children, const FunctionParameters &parameters) -> Population
 {
-    Population combined_population = parents;
-    combined_population.insert(combined_population.end(), children.begin(), children.end());
-    Population survivors = roulette_wheel_selection(combined_population, parameters);
+    Population combinedPopulation = parents;
+    combinedPopulation.insert(combinedPopulation.end(), children.begin(), children.end());
+    Population survivors = rouletteWheelSelection(combinedPopulation, parameters);
     // limit survivors to the population size
     survivors.resize(parents.size());
     return survivors;

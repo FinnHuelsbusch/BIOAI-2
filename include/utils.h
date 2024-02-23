@@ -6,13 +6,14 @@
 auto compareByFitness(const Individual &individualA, const Individual &individualB) -> bool;
 
 // Function to sort the population based on fitness in ascending or descending order
-auto sort_population(Population population, bool ascending) -> Population;
+auto sortPopulation(Population population, bool ascending) -> Population;
 
 // Function to print the genome
-void print_genome(Genome genome);
+void printGenome(const Genome& parent);
 
 // Function to flatten the genome
-auto flatten_genome(Genome genome) -> std::vector<int>;
+
+auto flattenGenome(const Genome& parent) -> std::vector<int>;
 
 // Function to unflatten the genome
-auto unflatten_genome(std::vector<int> flat_genome, Genome parent) -> Genome;
+auto unflattenGenome(std::vector<int> flatGenome, const Genome& parent) -> Genome;

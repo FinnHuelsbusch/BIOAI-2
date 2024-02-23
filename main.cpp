@@ -18,11 +18,11 @@
 
 using json = nlohmann::json;
 
-auto load_instance(const std::string& filename) -> Problem_Instance {
+auto loadInstance(const std::string& filename) -> ProblemInstance {
     std::ifstream inputFileStream("/workspaces/BIOAI-2/train/" + filename);
     json data = json::parse(inputFileStream);
-    const std::string instance_name = data["instance_name"];
-    std::cout << "Loading instance: " << instance_name << '\n';
+    const std::string instanceName = data["instance_name"];
+    std::cout << "Loading instance: " << instanceName << '\n';
     // load the depot
     Depot depot = {
         data["depot"]["x_coord"], 
@@ -30,53 +30,53 @@ auto load_instance(const std::string& filename) -> Problem_Instance {
         data["depot"]["return_time"]
     };
     // load the patients
-    const int number_of_patients = data["patients"].size();
-    std::cout << "Number of patients: " << number_of_patients << '\n';
+    const int numberOfPatients = data["patients"].size();
+    std::cout << "Number of patients: " << numberOfPatients << '\n';
     std::unordered_map<int, Patient> patients;
-    patients.reserve(number_of_patients);
+    patients.reserve(numberOfPatients);
     for (const auto& entry : data["patients"].items()) {
-        const auto& patient_data = entry.value();
+        const auto& patientData = entry.value();
         patients.insert({std::stoi(entry.key()), {
             std::stoi(entry.key()),
-            patient_data["demand"],
-            patient_data["start_time"],
-            patient_data["end_time"],
-            patient_data["care_time"],
-            patient_data["x_coord"],
-            patient_data["y_coord"]
+            patientData["demand"],
+            patientData["start_time"],
+            patientData["end_time"],
+            patientData["care_time"],
+            patientData["x_coord"],
+            patientData["y_coord"]
         }});
     }
     // load the travel time matrix
-    const int number_of_nurses = data["nbr_nurses"];
-    const int nurse_capacity = data["capacity_nurse"];
+    const int numberOfNurses = data["nbr_nurses"];
+    const int nurseCapacity = data["capacity_nurse"];
     const float benchmark = data["benchmark"];
-    std::vector<std::vector<double>> travel_time_matrix; 
-    travel_time_matrix.reserve(number_of_patients+1);
+    std::vector<std::vector<double>> travelTimeMatrix; 
+    travelTimeMatrix.reserve(numberOfPatients+1);
     for(const auto& row : data["travel_times"]){
         std::vector<double> helper;
-        helper.reserve(number_of_patients+1);
-        for(const auto& travel_time: row){
-            helper.push_back(travel_time); 
+        helper.reserve(numberOfPatients+1);
+        for(const auto& travelTime: row){
+            helper.push_back(travelTime); 
         }
-        travel_time_matrix.push_back(helper);
+        travelTimeMatrix.push_back(helper);
     }
 
-    Problem_Instance problem_instance = {
-        instance_name, 
-        number_of_nurses, 
-        nurse_capacity, 
+    ProblemInstance problemInstance = {
+        instanceName, 
+        numberOfNurses, 
+        nurseCapacity, 
         benchmark, 
         depot, 
         patients, 
-        travel_time_matrix
+        travelTimeMatrix
     };
-    std::cout << "Done loading instance: " << instance_name << '\n';
-    return problem_instance;
+    std::cout << "Done loading instance: " << instanceName << '\n';
+    return problemInstance;
 }
 
 auto main() -> int
 {   
-    Problem_Instance problem_instance = load_instance("train_0.json");
+    ProblemInstance problemInstance = loadInstance("train_0.json");
     Genome genome = {
         {1, 2, 3, 4},
         {8, 5, 6, 7},
@@ -104,43 +104,42 @@ auto main() -> int
         {93, 94, 95, 96},
         {97, 100, 99, 98}
     };
-    std::cout << "Handcrafted genome is valid: " << isSolutionValid(genome, problem_instance) << '\n';
-    std::cout << "Handcrafted genome fitness: " << evaluate_genome(genome, problem_instance) << '\n';
-    std::cout << "Handcrafted genome total travel time: " << getTotalTravelTime(genome, problem_instance) << '\n';
+    std::cout << "Handcrafted genome is valid: " << isSolutionValid(genome, problemInstance) << '\n';
+    std::cout << "Handcrafted genome fitness: " << evaluateGenome(genome, problemInstance) << '\n';
+    std::cout << "Handcrafted genome total travel time: " << getTotalTravelTime(genome, problemInstance) << '\n';
 
     RandomGenerator& rng = RandomGenerator::getInstance();
     rng.setSeed(42);
 
     // parent selection
-    function_parameters roulette_wheel_selection_configuration_params = {};
-    function_parameters tournament_selection_configuration_params = {{"tournament_size", 5}};
-    parent_selection_configuration tournament_selection_configuration = {tournament_selection, tournament_selection_configuration_params};
-    parent_selection_configuration roulette_wheel_selection_configuration = {roulette_wheel_selection, tournament_selection_configuration_params};
+    FunctionParameters rouletteWheelSelectionConfigurationParams = {};
+    FunctionParameters tournamentSelectionConfigurationParams = {{"tournamentSize", 5}};
+    ParentSelectionConfiguration tournamentSelectionConfiguration = {tournamentSelection, tournamentSelectionConfigurationParams};
+    ParentSelectionConfiguration rouletteWheelSelectionConfiguration = {rouletteWheelSelection, tournamentSelectionConfigurationParams};
     // crossover
-    crossover_configuration order1Crossover_configuration = {{order1Crossover, 0.8}};
-    crossover_configuration partiallyMappedCrossover_configuration = {{partiallyMappedCrossover, 0.8}};
-    crossover_configuration edgeRecombination_configuration = {{edgeRecombination, 0.8}};
+    CrossoverConfiguration order1CrossoverConfiguration = {{order1Crossover, 0.8}};
+    CrossoverConfiguration partiallyMappedCrossoverConfiguration = {{partiallyMappedCrossover, 0.8}};
+    CrossoverConfiguration edgeRecombinationConfiguration = {{edgeRecombination, 0.8}};
     // mutation
-    function_parameters empty_params;
-    mutation_configuration reassignOnePatient_configuration = {{reassignOnePatient, empty_params, 2.0}};
-    mutation_configuration everyMutation_configuration = {{reassignOnePatient, empty_params, 0.2}, 
-                                                        {insertWithinJourney, empty_params, 0.2},
-                                                        {swapBetweenJourneys, empty_params, 0.2},
-                                                        {swapWithinJourney, empty_params, 0.2}};
+    FunctionParameters emptyParams;
+    MuationConfiguration reassignOnePatientConfiguration = {{reassignOnePatient, emptyParams, 2.0}};
+    MuationConfiguration everyMutationConfiguration = {{reassignOnePatient, emptyParams, 0.2}, 
+                                                        {insertWithinJourney, emptyParams, 0.2},
+                                                        {swapBetweenJourneys, emptyParams, 0.2},
+                                                        {swapWithinJourney, emptyParams, 0.2}};
     // survivor selection
-    function_parameters full_replacement_params;
-    survivor_selection_configuration full_replacement_configuration = {full_replacement, full_replacement_params};
-    survivor_selection_configuration roulette_wheel_survivor_selection_configuration = {roulette_wheel_replacement, full_replacement_params};
+    SurvivorSelectionConfiguration fullReplacementConfiguration = {fullReplacement, emptyParams};
+    SurvivorSelectionConfiguration rouletteWheelSurvivorSelectionConfiguration = {rouletteWheelReplacement, emptyParams};
 
     
     Config config = Config(1000, 1000, true, 
-        tournament_selection_configuration, 
-        partiallyMappedCrossover_configuration, 
-        reassignOnePatient_configuration, 
-        roulette_wheel_survivor_selection_configuration
+        tournamentSelectionConfiguration, 
+        partiallyMappedCrossoverConfiguration, 
+        reassignOnePatientConfiguration, 
+        rouletteWheelSurvivorSelectionConfiguration
     );
 
-    SGA(problem_instance, config);
+    SGA(problemInstance, config);
 
 
 

@@ -4,7 +4,7 @@
 #include "RandomGenerator.h"
 #include "utils.h"
 
-auto roulette_wheel_selection(const Population &population, const function_parameters &parameters) -> Population
+auto rouletteWheelSelection(const Population &population, const FunctionParameters &parameters) -> Population
 {
     Population parents;
     std::vector<double> fitnessValues;
@@ -46,9 +46,9 @@ auto roulette_wheel_selection(const Population &population, const function_param
     return parents;
 }
 
-auto tournament_selection(const Population &population, const function_parameters &parameters) -> Population
+auto tournamentSelection(const Population &population, const FunctionParameters &parameters) -> Population
 {
-    int tournamentSize = std::get<int>(parameters.at("tournament_size"));
+    int tournamentSize = std::get<int>(parameters.at("tournamentSize"));
     Population parents;
     RandomGenerator& rng = RandomGenerator::getInstance();
     for (int i = 0; i < population.size(); i++) {

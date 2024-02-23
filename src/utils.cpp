@@ -9,7 +9,7 @@ auto compareByFitness(const Individual &individualA, const Individual &individua
     return individualA.fitness < individualB.fitness;
 }
 
-auto sort_population(Population population, bool ascending) -> Population
+auto sortPopulation(Population population, bool ascending) -> Population
 {
     if (ascending) {
         std::sort(population.begin(), population.end(), compareByFitness);
@@ -22,7 +22,7 @@ auto sort_population(Population population, bool ascending) -> Population
     return population;
 }
 
-void print_genome(Genome genome){
+void printGenome(const Genome& genome){
     for (int i = 0; i < genome.size(); i++) {
         std::cout << "Nurse " << i << " has patients: ";
         for (int patientID : genome[i])
@@ -33,23 +33,23 @@ void print_genome(Genome genome){
     }
 }
 
-auto flatten_genome(const Genome &genome) -> std::vector<int>
+auto flattenGenome(const Genome &genome) -> std::vector<int>
 {
-    std::vector<int> flat_genome;
+    std::vector<int> flatGenome;
     for (const Journey &journey : genome)
     {
         for (int patientID : journey)
         {
-            flat_genome.push_back(patientID);
+            flatGenome.push_back(patientID);
         }
     }
-    return flat_genome;
+    return flatGenome;
 }
 
-auto unflatten_genome(std::vector<int> flat_genome, const Genome &parent) -> Genome
+auto unflattenGenome(std::vector<int> flatGenome, const Genome &parent) -> Genome
 {
-    Genome unflattened_genome;
-    unflattened_genome.reserve(parent.size());
+    Genome unflattenedGenome;
+    unflattenedGenome.reserve(parent.size());
     int index = 0;
     for (const auto &parentJourney : parent)
     {
@@ -57,10 +57,10 @@ auto unflatten_genome(std::vector<int> flat_genome, const Genome &parent) -> Gen
         journey.reserve(parentJourney.size());
         for (int j = 0; j < parentJourney.size(); j++)
         {
-            journey.push_back(flat_genome[index]);
+            journey.push_back(flatGenome[index]);
             index++;
         }
-        unflattened_genome.push_back(journey);
+        unflattenedGenome.push_back(journey);
     }
-    return unflattened_genome;
+    return unflattenedGenome;
 }

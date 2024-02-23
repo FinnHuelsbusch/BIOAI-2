@@ -9,32 +9,32 @@
 struct Patient {
     int id;
     int demand; 
-    int start_time;
-    int end_time;
-    int care_time;
-    int x_coord;
-    int y_coord;
+    int startTime;
+    int endTime;
+    int careTime;
+    int xCoord;
+    int yCoord;
 };
  
 struct Depot {
-    int x_coord;
-    int y_coord;
-    int return_time;
+    int xCoord;
+    int yCoord;
+    int returnTime;
 };
 
-struct Problem_Instance {
-    std::string instance_name;
-    int number_of_nurses;
-    int nurse_capacity;
+struct ProblemInstance {
+    std::string instanceName;
+    int numberOfNurses;
+    int nurseCapacity;
     float benchmark;
     Depot depot;
     // hashmap with patient id as key and patient as value
     std::unordered_map<int, Patient> patients;
     // travel time matrix
-    std::vector<std::vector<double>> travel_time;
+    std::vector<std::vector<double>> travelTime;
 
     // Constructor
-    Problem_Instance(std::string instance_name, int number_of_nurses, int nurse_capacity, float benchmark, Depot depot, std::unordered_map<int, Patient> patients, std::vector<std::vector<double>> travel_time) : instance_name(std::move(instance_name)), number_of_nurses(number_of_nurses), nurse_capacity(nurse_capacity), benchmark(benchmark), depot(depot), patients(std::move(patients)), travel_time(std::move(travel_time)) {}
+    ProblemInstance(std::string instanceName, int numberOfNurses, int nurseCapacity, float benchmark, Depot depot, std::unordered_map<int, Patient> patients, std::vector<std::vector<double>> travelTime) : instanceName(std::move(instanceName)), numberOfNurses(numberOfNurses), nurseCapacity(nurseCapacity), benchmark(benchmark), depot(depot), patients(std::move(patients)), travelTime(std::move(travelTime)) {}
 };
 
 using Journey = std::vector<int>;
@@ -48,28 +48,28 @@ struct Individual {
 
 using Population = std::vector<Individual>;
 
-using function_parameters = std::map<std::string, std::variant<int, double, std::string, bool, Problem_Instance>>;
-using crossover_function = std::pair<Genome, std::optional<Genome>> (*)(const Genome &, const Genome &);
-using mutation_function = Genome (*)(Genome&, const function_parameters& parameters);
-using parent_selection_function = Population (*)(const Population& population, const function_parameters& parameters);
-using survivor_selection_function = Population (*)(const Population& parents, const Population& children, const function_parameters& parameters);
+using FunctionParameters = std::map<std::string, std::variant<int, double, std::string, bool, ProblemInstance>>;
+using CrossoverFunction = std::pair<Genome, std::optional<Genome>> (*)(const Genome &, const Genome &);
+using MutationFunction = Genome (*)(Genome&, const FunctionParameters& parameters);
+using ParentSelectionFunction = Population (*)(const Population& population, const FunctionParameters& parameters);
+using SurvivorSelectionFunction = Population (*)(const Population& parents, const Population& children, const FunctionParameters& parameters);
 
-using crossover_configuration = std::vector<std::pair<crossover_function, double>>;
-using mutation_configuration = std::vector<std::tuple<mutation_function, function_parameters &, double>>;
-using parent_selection_configuration = std::pair<parent_selection_function, function_parameters &>;
-using survivor_selection_configuration = std::pair<survivor_selection_function, function_parameters &>;
+using CrossoverConfiguration = std::vector<std::pair<CrossoverFunction, double>>;
+using MuationConfiguration = std::vector<std::tuple<MutationFunction, FunctionParameters &, double>>;
+using ParentSelectionConfiguration = std::pair<ParentSelectionFunction, FunctionParameters &>;
+using SurvivorSelectionConfiguration = std::pair<SurvivorSelectionFunction, FunctionParameters &>;
 
 struct Config {
-    int population_size;
-    int number_of_generations;  
-    bool initial_population_distirbute_patients_equally; 
-    parent_selection_configuration parent_selection;
-    crossover_configuration crossover;
-    mutation_configuration mutation;
-    survivor_selection_configuration survivor_selection;
+    int populationSize;
+    int numberOfGenerations;  
+    bool initialPopulationDistirbutePatientsEqually; 
+    ParentSelectionConfiguration parentSelection;
+    CrossoverConfiguration crossover;
+    MuationConfiguration mutation;
+    SurvivorSelectionConfiguration survivorSelection;
 
     // Constructor
-    Config(int population_size, int number_of_generations, bool initial_population_distirbute_patients_equally, parent_selection_configuration parent_selection, crossover_configuration crossover, mutation_configuration mutation, survivor_selection_configuration survivor_selection) : population_size(population_size), number_of_generations(number_of_generations), initial_population_distirbute_patients_equally(initial_population_distirbute_patients_equally), parent_selection(std::move(parent_selection)), crossover(std::move(crossover)), mutation(std::move(mutation)), survivor_selection(std::move(survivor_selection)) {}
+    Config(int populationSize, int numberOfGenerations, bool initialPopulationDistirbutePatientsEqually, ParentSelectionConfiguration parentSelection, CrossoverConfiguration crossover, MuationConfiguration mutation, SurvivorSelectionConfiguration survivorSelection) : populationSize(populationSize), numberOfGenerations(numberOfGenerations), initialPopulationDistirbutePatientsEqually(initialPopulationDistirbutePatientsEqually), parentSelection(std::move(parentSelection)), crossover(std::move(crossover)), mutation(std::move(mutation)), survivorSelection(std::move(survivorSelection)) {}
 };
 
 
