@@ -20,7 +20,7 @@ bool isJourneyValid(const Journey& nurse_journey, const Problem_Instance& proble
             total_time_spent += problem_instance.travel_time[0][patient_id];
         }
         else {
-            total_time_spent += problem_instance.travel_time[nurse_journey[j - 1]][patient_id];
+            total_time_spent += problem_instance.travel_time[previous_patient_id][patient_id];
         }
         if (total_time_spent < problem_instance.patients.at(patient_id).start_time) {
             total_time_spent = problem_instance.patients.at(patient_id).start_time;
@@ -47,12 +47,6 @@ bool isJourneyValid(const Journey& nurse_journey, const Problem_Instance& proble
     if (total_time_spent > problem_instance.depot.return_time) {
         if (print_errors) {
             std::cout << "Nurse exceeds the return time" << std::endl;
-        }
-        return false;
-    }
-    if (problem_instance.nurse_capacity > problem_instance.nurse_capacity) {
-        if(print_errors){
-            std::cout << "Nurse exceeds the capacity" << std::endl;
         }
         return false;
     }

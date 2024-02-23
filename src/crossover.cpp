@@ -97,12 +97,11 @@ std::pair<Genome, std::optional<Genome>> partiallyMappedCrossover(const Genome& 
         if (std::find(child2_flat.begin(), child2_flat.end(), parent1_flat[i]) != child2_flat.end()) {
             continue;
         }
-        bool help; 
         do {
             previous_indices.push_back(index);
             std::vector<int>::iterator it = std::find(parent1_flat.begin(), parent1_flat.end(), parent2_flat[index]); 
             index = it - parent1_flat.begin();
-        } while ((help && start <= index && index <= end && std::find(previous_indices.begin(), previous_indices.end(), index) == previous_indices.end()) || child2_flat[index] != -1);
+        } while ((start <= index && index <= end && std::find(previous_indices.begin(), previous_indices.end(), index) == previous_indices.end()) || child2_flat[index] != -1);
         child2_flat[index] = parent1_flat[i];
         
     }
