@@ -19,7 +19,7 @@
 using json = nlohmann::json;
 
 auto loadInstance(const std::string& filename) -> ProblemInstance {
-    std::ifstream inputFileStream("/workspaces/BIOAI-2/train/" + filename);
+    std::ifstream inputFileStream("./train/" + filename);
     json data = json::parse(inputFileStream);
     const std::string instanceName = data["instance_name"];
     std::cout << "Loading instance: " << instanceName << '\n';
@@ -132,7 +132,7 @@ auto main() -> int
     SurvivorSelectionConfiguration rouletteWheelSurvivorSelectionConfiguration = {rouletteWheelReplacement, emptyParams};
 
     
-    Config config = Config(1000, 1000, true, 
+    Config config = Config(100, 100, true, 
         tournamentSelectionConfiguration, 
         partiallyMappedCrossoverConfiguration, 
         reassignOnePatientConfiguration, 
