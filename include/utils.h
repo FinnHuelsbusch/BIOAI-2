@@ -17,3 +17,6 @@ auto flattenGenome(const Genome& parent) -> std::vector<int>;
 
 // Function to unflatten the genome
 auto unflattenGenome(std::vector<int> flatGenome, const Genome& parent) -> Genome;
+
+// Export individual to json given a Individual and a path
+auto exportIndividual(const Individual& individual, const std::string& path) -> void;
