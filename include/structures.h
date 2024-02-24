@@ -6,24 +6,27 @@
 #include <string>
 #include <unordered_map>
 #include <optional>
- 
-struct Patient {
+
+struct Patient
+{
     int id;
-    int demand; 
+    int demand;
     int startTime;
     int endTime;
     int careTime;
     int xCoord;
     int yCoord;
 };
- 
-struct Depot {
+
+struct Depot
+{
     int xCoord;
     int yCoord;
     int returnTime;
 };
 
-struct ProblemInstance {
+struct ProblemInstance
+{
     std::string instanceName;
     int numberOfNurses;
     int nurseCapacity;
@@ -42,28 +45,33 @@ using Journey = std::vector<int>;
 
 using Genome = std::vector<Journey>;
 
-struct Individual {
-    Genome genome; 
-    double fitness;
+struct Individual
+{
+    Genome genome;
+    double fitness = 0.0;
+    int missingCareTimePenality = 0;
+    int capacityPenality = 0;
+    int toLateToDepotPenality = 0;
 };
 
 using Population = std::vector<Individual>;
 
 using FunctionParameters = std::map<std::string, std::variant<int, double, std::string, bool, ProblemInstance>>;
 using CrossoverFunction = std::pair<Genome, std::optional<Genome>> (*)(const Genome &, const Genome &);
-using MutationFunction = Genome (*)(Genome&, const FunctionParameters& parameters);
-using ParentSelectionFunction = Population (*)(const Population& population, const FunctionParameters& parameters);
-using SurvivorSelectionFunction = Population (*)(const Population& parents, const Population& children, const FunctionParameters& parameters);
+using MutationFunction = Genome (*)(Genome &, const FunctionParameters &parameters);
+using ParentSelectionFunction = Population (*)(const Population &population, const FunctionParameters &parameters);
+using SurvivorSelectionFunction = Population (*)(const Population &parents, const Population &children, const FunctionParameters &parameters);
 
 using CrossoverConfiguration = std::vector<std::pair<CrossoverFunction, double>>;
 using MuationConfiguration = std::vector<std::tuple<MutationFunction, FunctionParameters &, double>>;
 using ParentSelectionConfiguration = std::pair<ParentSelectionFunction, FunctionParameters &>;
 using SurvivorSelectionConfiguration = std::pair<SurvivorSelectionFunction, FunctionParameters &>;
 
-struct Config {
+struct Config
+{
     int populationSize;
-    int numberOfGenerations;  
-    bool initialPopulationDistirbutePatientsEqually; 
+    int numberOfGenerations;
+    bool initialPopulationDistirbutePatientsEqually;
     ParentSelectionConfiguration parentSelection;
     CrossoverConfiguration crossover;
     MuationConfiguration mutation;
@@ -72,9 +80,3 @@ struct Config {
     // Constructor
     Config(int populationSize, int numberOfGenerations, bool initialPopulationDistirbutePatientsEqually, ParentSelectionConfiguration parentSelection, CrossoverConfiguration crossover, MuationConfiguration mutation, SurvivorSelectionConfiguration survivorSelection) : populationSize(populationSize), numberOfGenerations(numberOfGenerations), initialPopulationDistirbutePatientsEqually(initialPopulationDistirbutePatientsEqually), parentSelection(std::move(parentSelection)), crossover(std::move(crossover)), mutation(std::move(mutation)), survivorSelection(std::move(survivorSelection)) {}
 };
-
-
-
-
-
-

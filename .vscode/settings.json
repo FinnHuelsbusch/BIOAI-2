@@ -64,9 +64,11 @@
         "set": "cpp",
         "mutex": "cpp",
         "stop_token": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "numbers": "cpp",
+        "semaphore": "cpp"
     },
-    "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+    "C_Cpp.codeAnalysis.clangTidy.enabled": false,
     "C_Cpp.codeAnalysis.exclude": {
         "build/**": true,
         "test/**": true,
