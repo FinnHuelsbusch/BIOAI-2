@@ -19,7 +19,7 @@
 using json = nlohmann::json;
 
 auto loadInstance(const std::string& filename) -> ProblemInstance {
-    std::ifstream inputFileStream("./train/" + filename);
+    std::ifstream inputFileStream("./../train/" + filename);
     json data = json::parse(inputFileStream);
     const std::string instanceName = data["instance_name"];
     std::cout << "Loading instance: " << instanceName << '\n';
