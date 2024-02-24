@@ -80,5 +80,7 @@
     ],
     "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
         "readability-magic-numbers"
-    ]
+    ],
+    "C_Cpp.default.cppStandard": "c++20",
+
 }
