@@ -10,10 +10,10 @@ include(CTest)
 enable_testing()
 
 include(FetchContent)
-FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz DOWNLOAD_EXTRACT_TIMESTAMP true)
+FetchContent_Declare(json DOWNLOAD_EXTRACT_TIMESTAMP true URL  https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
-FetchContent_Declare(googletest URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip DOWNLOAD_EXTRACT_TIMESTAMP true)
+FetchContent_Declare(googletest  DOWNLOAD_EXTRACT_TIMESTAMP true URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip)
 FetchContent_MakeAvailable(googletest)
 include(GoogleTest)
 
