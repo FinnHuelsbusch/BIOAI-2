@@ -1,6 +1,13 @@
 #include "structures.h"
 #include <algorithm>
 #include <iostream>
+#include "nlohmann/json.hpp"
+#include <fstream> // Include the <fstream> header file
+
+
+
+using json = nlohmann::json;
+
 
 // custom comparator for sorting the population
 auto compareByFitness(const Individual &individualA, const Individual &individualB) -> bool
@@ -63,4 +70,16 @@ auto unflattenGenome(std::vector<int> flatGenome, const Genome &parent) -> Genom
         unflattenedGenome.push_back(journey);
     }
     return unflattenedGenome;
+}
+
+
+auto exportIndividual(const Individual& individual, const std::string& path) -> void
+{
+    json individualJson;
+    individualJson["fitness"] = individual.fitness;
+    individualJson["genome"] = individual.genome;
+    // write to file
+    std::ofstream outputFileStream(path); // Create an instance of std::ofstream
+    outputFileStream << individualJson.dump(4);
+    outputFileStream.close();
 }

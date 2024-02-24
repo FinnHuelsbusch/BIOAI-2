@@ -492,4 +492,6 @@ void SGA(ProblemInstance &problemInstance, Config &config)
         std::cout << "The solution is " << totalTravelTime - problemInstance.benchmark << " time units worse than the benchmark" << '\n';
         std::cout << "The solution is " << (problemInstance.benchmark - totalTravelTime) * 100 << "% worse than the benchmark" << '\n';
     }
+
+    exportIndividual(pop[0], "./../solution.json");
 }
