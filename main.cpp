@@ -69,28 +69,27 @@ auto loadInstance(const std::string &filename) -> ProblemInstance
     return problemInstance;
 }
 
-auto runInParallel(const ProblemInstance instance, const Config config) -> Individual
+auto runInParallel(ProblemInstance instance, Config config) -> Individual
 {
-    // Parameters for each function call
-    std::vector<Config> params(16, config);
+    // Define an array to hold the threads
+    // Create an array of individuals
+    std::vector<Individual> individuals;
 
-    // Vector to hold the futures
-    std::vector<std::future<Individual>> futures;
-
-    // Run functions asynchronously
-    for (const auto &param : params)
-    {
-        futures.push_back(std::async(std::launch::async, SGA, std::ref(const_cast<ProblemInstance&>(instance)), std::ref(const_cast<Config&>(config))));
+    // Create threads to process each individual
+    std::vector<std::thread> threads;
+    for (int i = 0; i < 8; ++i)
+    { // Adjust num_individuals as needed
+        threads.emplace_back([&]()
+                             { individuals.push_back(SGA(instance, config)); });
     }
 
-    // Retrieve results and store in an array
-    std::vector<Individual> results;
-    for (auto &future : futures)
+    // Join all threads
+    for (auto &thread : threads)
     {
-        results.push_back(future.get());
+        thread.join();
     }
 
-    sortPopulationByFitness(results, false);
+    sortPopulationByFitness(individuals, false);
     return results[0];
 }
 
@@ -100,7 +99,7 @@ auto main() -> int
     RandomGenerator &rng = RandomGenerator::getInstance();
     rng.setSeed(42);
 
-    const int populationSize = 10000;
+    const int populationSize = 1000;
 
     // parent selection
     FunctionParameters rouletteWheelSelectionConfigurationParams = {{"populationSize", populationSize}};
@@ -128,7 +127,8 @@ auto main() -> int
                            reassignOnePatientConfiguration,
                            rouletteWheelSurvivorSelectionConfiguration);
 
-    SGA(problemInstance, config);
+    Individual result = runInParallel(problemInstance, config);
+    std::cout << result.fitness << std::endl;
 
     return 0;
 }
