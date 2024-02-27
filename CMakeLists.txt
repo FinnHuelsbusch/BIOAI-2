@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+
 include(CTest)
 enable_testing()
 
@@ -19,6 +20,9 @@ include(GoogleTest)
 
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 add_executable(BIOAI-2 ${SRC_FILES} main.cpp)
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_definitions(BIOAI-2 PRIVATE PRODUCTION=1)
+endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -28,6 +32,9 @@ target_link_libraries(TestBIOAI-2 PRIVATE gtest_main gmock_main nlohmann_json::n
 target_include_directories(TestBIOAI-2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/test/include)
 # set TESTING_MODE to 1 to enable testing mode
 target_compile_definitions(TestBIOAI-2 PRIVATE TESTING_MODE=1)
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_definitions(TestBIOAI-2 PRIVATE PRODUCTION=1)
+endif()
 gtest_discover_tests(TestBIOAI-2)
 add_test(NAME TestBIOAI-2 COMMAND TestBIOAI-2)
 

@@ -47,3 +47,4 @@ _deps
 build/
 solution.json
 gantt.csv
+*.gif

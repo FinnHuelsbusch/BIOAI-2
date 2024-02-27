@@ -2,7 +2,8 @@
 #include <algorithm>
 #include <iostream>
 #include "nlohmann/json.hpp"
-#include <fstream> // Include the <fstream> header file
+#include <fstream> 
+#include <spdlog/spdlog.h>
 
 
 
@@ -64,15 +65,20 @@ auto sortPopulationByTravelTime(Population& population, bool ascending, const Pr
     }
 }
 
-void printGenome(const Genome& genome){
+auto logGenome(const Genome& genome, const std::string& IndividualName, const int generation) -> void {
+    auto logger = spdlog::get("statistics_logger");
+    std::string genomeString = "Name: " + IndividualName + " Generation: " + std::to_string(generation) + " Genome: [";
     for (int i = 0; i < genome.size(); i++) {
-        std::cout << "Nurse " << i << " has patients: ";
+        genomeString += "[";
         for (int patientID : genome[i])
         {
-            std::cout << patientID << " ";
+            genomeString += std::to_string(patientID) + ", ";
         }
-        std::cout << '\n';
+        genomeString += "], ";
     }
+    genomeString += "]";
+    logger->debug(genomeString);
+
 }
 
 auto flattenGenome(const Genome &genome) -> std::vector<int>

@@ -12,10 +12,9 @@ auto sortPopulationByFitness(Population& population, bool ascending) -> void;
 auto sortPopulationByTravelTime(Population& population, bool ascending, const ProblemInstance &problemInstance) -> void;
 
 // Function to print the genome
-void printGenome(const Genome& parent);
+auto logGenome(const Genome& genome, const std::string& IndividualName, const int generation) -> void;
 
 // Function to flatten the genome
-
 auto flattenGenome(const Genome& parent) -> std::vector<int>;
 
 // Function to unflatten the genome

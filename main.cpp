@@ -101,10 +101,22 @@ auto runInParallel(ProblemInstance instance, Config config) -> Individual
 
 auto main() -> int
 {
+    std::string main_log_file_path = "logfile.txt";
+    std::string statistics_log_file_path = "statistics.txt";
+
+    // Check if log files exist, and if so, remove them
+    if (std::filesystem::exists(main_log_file_path)) {
+        std::filesystem::remove(main_log_file_path);
+    }
+
+    if (std::filesystem::exists(statistics_log_file_path)) {
+        std::filesystem::remove(statistics_log_file_path);
+    }
 
     // Create a basic file sink
-    auto main_file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("logfile.txt");
-    auto statistics_file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("statistics.txt");
+    auto main_file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(main_log_file_path);
+    auto statistics_file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(statistics_log_file_path);
+
 
     // Create a logger with the basic file sink
     auto logger = std::make_shared<spdlog::logger>("main_logger", main_file_sink);
@@ -113,6 +125,15 @@ auto main() -> int
     // Set the logging pattern with the thread id
     logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%t] [%l] %v");
     statistics_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%t] [%l] %v");
+
+
+    #if defined(PRODUCTION)
+        logger->set_level(spdlog::level::info);
+        statistics_logger->set_level(spdlog::level::info);
+    #else
+        logger->set_level(spdlog::level::trace);
+        statistics_logger->set_level(spdlog::level::trace);
+    #endif
 
     // Register the logger
     spdlog::register_logger(logger);

@@ -383,6 +383,10 @@ Individual SGA(ProblemInstance problemInstance, Config config)
 
     //Population pop = initializeFeasiblePopulation(problemInstance, config);
     Population pop = initializeRandomPopulation(problemInstance, config);
+    Individual* referenceIndividual = &pop[0];
+    logGenome(referenceIndividual->genome, "Reference", 0);
+    sortPopulationByFitness(pop, false);
+    logGenome(pop[0].genome, "Best", 0);
     //  check if population only contains valid solutions
     bool valid = std::all_of(pop.begin(), pop.end(), [&](const Individual &individual)
                              { return isSolutionValid(individual.genome, problemInstance); });
@@ -426,6 +430,9 @@ Individual SGA(ProblemInstance problemInstance, Config config)
         statistics_logger->info("Best: {} Avg: {} Worst: {}", getTotalTravelTime(pop[0].genome, problemInstance), averageTravelTime, getTotalTravelTime(pop[pop.size() - 1].genome, problemInstance));
         std::cout << "Best: " << getTotalTravelTime(pop[0].genome, problemInstance) << " Avg: " << averageTravelTime << " Worst: " << getTotalTravelTime(pop[pop.size() - 1].genome, problemInstance) << '\n';
         std::cout << std::endl;
+        // Log the best and reference individual
+        logGenome(pop[0].genome, "Best", currentGeneration);
+        //logGenome(referenceIndividual->genome, "Reference", currentGeneration);
         main_logger->flush();
     }
     valid = isSolutionValid(pop[0].genome, problemInstance);

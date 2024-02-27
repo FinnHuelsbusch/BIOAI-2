@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+from typing import List
+from matplotlib.animation import ArtistAnimation, FuncAnimation
 import seaborn as sns
 import matplotlib.pyplot as plt
 import json
@@ -8,6 +10,8 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np
 import matplotlib.patches as mpatches
+import ast
+import networkx as nx
 
 class Individual: 
     def __init__(self, filepath): 
@@ -40,7 +44,6 @@ class ProblemInstance:
         self.depot = depot
         self.patients = patients
         self.travelTime = travel_time
-    import json
 
     def load_instance(filename):
         with open(f"./train/{filename}", 'r') as file:
@@ -95,16 +98,17 @@ class ProblemInstance:
         return problem_instance
 
 
-def visualizeTripsOnMap(individual : Individual, problem_instance : ProblemInstance): 
+def visualizeTripsOnMap(genome : List[List[int]], problem_instance : ProblemInstance, ax = None): 
 
-    # create a plot 
-    fig, ax = plt.subplots()
+    if ax is None:
+        # create a plot 
+        fig, ax = plt.subplots()
     # add the depot to the plot
     ax.scatter(problem_instance.depot.xCoord, problem_instance.depot.yCoord, color='red')
     # generate as many colors as there are nurses
     colors = sns.color_palette('hsv', problem_instance.numberOfNurses)
     # iterate through the different trips 
-    for trip, color in zip(individual.genome, colors):
+    for trip, color in zip(genome, colors):
         if len(trip) == 0:
             continue
         # add the first trip to the plot as arrow
@@ -115,8 +119,30 @@ def visualizeTripsOnMap(individual : Individual, problem_instance : ProblemInsta
             ax.arrow(problem_instance.patients[trip[i-1]].xCoord, problem_instance.patients[trip[i-1]].yCoord, problem_instance.patients[trip[i]].xCoord - problem_instance.patients[trip[i-1]].xCoord, problem_instance.patients[trip[i]].yCoord - problem_instance.patients[trip[i-1]].yCoord, head_width=0.5, head_length=0.5, fc=color, ec=color)
         # add the return trip to the plot
         ax.arrow(problem_instance.patients[trip[-1]].xCoord, problem_instance.patients[trip[-1]].yCoord, problem_instance.depot.xCoord - problem_instance.patients[trip[-1]].xCoord, problem_instance.depot.yCoord - problem_instance.patients[trip[-1]].yCoord, head_width=0.5, head_length=0.5, fc=color, ec=color)
-    # display the plot
-    plt.show()
+
+
+
+def read_log_file(file_path):
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+    logfile_data = {}
+    # [2024-02-27 18:09:24.864] [262614] [debug] Name: Reference Generation: 0 Genome: [[33, ], [54, 72, 74, 14, 84, ], [28, 9, 17, 27, ], [95, 64, 76, ], [90, 82, ], [71, 65, 6, ], [], [30, 94, 42, 31, 34, 7, ], [49, 97, 38, 29, 73, 22, 78, ], [1, 10, 48, 11, 35, ], [36, 43, 86, 52, 19, ], [53, 50, 23, 96, 21, 62, ], [45, 92, ], [75, 24, 40, ], [46, 85, 56, 8, ], [81, 13, 89, 88, 99, 68, ], [16, 77, 47, 80, ], [32, 25, 91, ], [3, 93, 20, 2, 55, 87, 15, ], [59, 41, 61, 57, 51, 60, 98, ], [37, 79, 5, 4, 66, ], [70, 18, 26, 44, ], [39, 100, 83, ], [69, 12, 63, ], [58, 67, ], ]
+    for i, line in enumerate(lines):
+        if '[debug] Name: ' in line:
+            thread_id = line.split('[')[2].split(']')[0]
+            genome_name = line.split('Name: ')[1].split('Generation: ')[0].strip()
+            generation = line.split('Generation: ')[1].split('Genome: ')[0].strip()
+            genome_string = line.split('Genome: ')[1].strip()
+            # genome string to 2D list
+            genome = ast.literal_eval(genome_string)
+            thread_data = logfile_data.get(thread_id, {})
+            genome_data = thread_data.get(genome_name, {})
+            genome_data[generation] = genome
+            thread_data[genome_name] = genome_data
+            logfile_data[thread_id] = thread_data
+    return logfile_data
+
+
 
 def visualizeAsGantChart(individual : Individual, problem_instance : ProblemInstance): 
 
@@ -240,11 +266,35 @@ def visualizeAsGantChart(individual : Individual, problem_instance : ProblemInst
     # save df to csv ordered by nurse and start time
     df = df.sort_values(by=['Task', 'Start Time'])
     df.to_csv('gantt.csv', index=False)
-    # display the plot
-    plt.show()
     
 
+
+def animateTripsOnMap(genomes, problem_instance, filename='animation.gif'):
     
+    # Create a figure and axis
+    fig, ax = plt.subplots()
+
+    # Initialize empty plot
+    pos = {}
+    edges = []
+
+    # Function to update the plot for each version
+    def update(version):
+        ax.clear()
+        for artist in ax.lines + ax.collections:
+            artist.remove()
+        ax.set_title(f"Version {version+1}")
+        
+        genome = genomes[version]
+        visualizeTripsOnMap(genome, problem_instance, ax)
+
+    # Create an animation
+    animation = FuncAnimation(fig, update, frames=len(genomes), repeat=False, interval=500)
+
+    # Save the animation to gif
+    animation.save(filename, writer='imagemagick', fps=1)
+    
+
 
 if __name__ == "__main__":
     # load the problem instance
@@ -252,6 +302,22 @@ if __name__ == "__main__":
     # load the individual
     individual = Individual("solution.json")
     # visualize the individual
-    visualizeAsGantChart(individual, problem_instance)
-    visualizeTripsOnMap(individual, problem_instance)
+    # visualizeAsGantChart(individual, problem_instance)
+    # plt.show()
+    # visualizeTripsOnMap(individual.genome, problem_instance)
+    # plt.show()
+    # read the log file
+    logfile_data = read_log_file('./build/statistics.txt')
+    # visualize the log file
+    keys = list(logfile_data.keys())
+    for thread_id, thread_data in logfile_data.items():
+        for genome_name, generations in thread_data.items():
+            if genome_name == 'Reference':
+                continue
+            genomes = []
+            for generation, genome in generations.items():
+                genomes.append(genome)
+            animateTripsOnMap(genomes, problem_instance, f'animation_{keys.index(thread_id)}_{genome_name}.gif')
+
+                
     
