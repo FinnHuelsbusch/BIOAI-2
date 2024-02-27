@@ -13,6 +13,9 @@
 #include "mutation.h"
 #include "survivorSelection.h"
 #include <climits>
+#include <future>
+#include "utils.h"
+#include <functional>
 
 using json = nlohmann::json;
 
@@ -66,6 +69,30 @@ auto loadInstance(const std::string &filename) -> ProblemInstance
     return problemInstance;
 }
 
+auto runInParallel(const ProblemInstance instance, const Config config) -> Individual
+{
+    // Parameters for each function call
+    std::vector<Config> params(16, config);
+
+    // Vector to hold the futures
+    std::vector<std::future<Individual>> futures;
+
+    // Run functions asynchronously
+    for (const auto &param : params)
+    {
+        futures.push_back(std::async(std::launch::async, SGA, std::ref(instance), std::ref(config)));
+    }
+
+    // Retrieve results and store in an array
+    std::vector<Individual> results;
+    for (auto &future : futures)
+    {
+        results.push_back(future.get());
+    }
+
+    return sortPopulation(results, false)[0];
+}
+
 auto main() -> int
 {
     ProblemInstance problemInstance = loadInstance("train_0.json");
@@ -113,7 +140,7 @@ auto main() -> int
     ParentSelectionConfiguration tournamentSelectionConfiguration = {tournamentSelection, tournamentSelectionConfigurationParams};
     ParentSelectionConfiguration rouletteWheelSelectionConfiguration = {rouletteWheelSelection, rouletteWheelSelectionConfigurationParams};
     // crossover
-    CrossoverConfiguration order1CrossoverConfiguration = {{order1Crossover, 0.8}};
+    CrossoverConfiguration order1CrossoverConfiguration = {{order1Crossover, 0.3}};
     CrossoverConfiguration partiallyMappedCrossoverConfiguration = {{partiallyMappedCrossover, 0.2}};
     CrossoverConfiguration edgeRecombinationConfiguration = {{edgeRecombination, 0.8}};
     // mutation
@@ -127,9 +154,9 @@ auto main() -> int
     SurvivorSelectionConfiguration fullReplacementConfiguration = {fullReplacement, emptyParams};
     SurvivorSelectionConfiguration rouletteWheelSurvivorSelectionConfiguration = {rouletteWheelReplacement, rouletteWheelSelectionConfigurationParams};
 
-    Config config = Config(populationSize, 200, false,
+    Config config = Config(populationSize, 100, false,
                            rouletteWheelSelectionConfiguration,
-                           partiallyMappedCrossoverConfiguration,
+                           order1CrossoverConfiguration,
                            reassignOnePatientConfiguration,
                            rouletteWheelSurvivorSelectionConfiguration);
 

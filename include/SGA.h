@@ -9,4 +9,4 @@ auto initializeFeasiblePopulation(const ProblemInstance &problemInstance, const 
 auto getTotalTravelTime(const Genome &genome, const ProblemInstance &problemInstance) -> double;
 auto applyCrossover(Population &parents, CrossoverConfiguration &crossover, ProblemInstance &problemInstance) -> Population;
 auto applyMutation(Population &population, MuationConfiguration &mutation, ProblemInstance &problemInstance) -> Population;
-auto SGA(ProblemInstance &problemInstance, Config &config) -> void;
+auto SGA(ProblemInstance &problemInstance, Config &config) -> Individual;

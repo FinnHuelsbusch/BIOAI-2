@@ -418,12 +418,12 @@ auto applyMutation(Population &population, MuationConfiguration &mutation, Probl
     return population;
 }
 
-void SGA(ProblemInstance &problemInstance, Config &config)
+Individual SGA(ProblemInstance &problemInstance, Config &config)
 {
 
     Population pop = initializeFeasiblePopulation(problemInstance, config);
-    //Population pop = initializeRandomPopulation(problemInstance, config);
-    // check if population only contains valid solutions
+    // Population pop = initializeRandomPopulation(problemInstance, config);
+    //  check if population only contains valid solutions
     bool valid = std::all_of(pop.begin(), pop.end(), [&](const Individual &individual)
                              { return isSolutionValid(individual.genome, problemInstance); });
     if (valid)
@@ -464,27 +464,11 @@ void SGA(ProblemInstance &problemInstance, Config &config)
         std::cout << std::endl;
     }
     valid = isSolutionValid(pop[0].genome, problemInstance);
-    if (valid)
-    {
-        std::cout << "The solution is valid" << '\n';
-    }
-    else
-    {
-        std::cout << "The solution is invalid" << '\n';
-    }
-    double totalTravelTime = getTotalTravelTime(pop[0].genome, problemInstance);
-    std::cout << "Total travel time" << totalTravelTime << '\n';
-    if (totalTravelTime < problemInstance.benchmark)
-    {
-        std::cout << "The solution is " << problemInstance.benchmark - totalTravelTime << " time units better than the benchmark" << '\n';
-        std::cout << "The solution is " << (totalTravelTime / problemInstance.benchmark) * 100 << "% better than the benchmark" << '\n';
-    }
-    else
-    {
-        std::cout << "The solution is " << totalTravelTime - problemInstance.benchmark << " time units worse than the benchmark" << '\n';
-        std::cout << "The solution is " << (problemInstance.benchmark - totalTravelTime) * 100 << "% worse than the benchmark" << '\n';
-    }
-    isSolutionValid(pop[0].genome, problemInstance, true);
 
-    exportIndividual(pop[0], "./../solution.json");
+    double totalTravelTime = getTotalTravelTime(pop[0].genome, problemInstance);
+    std::cout << "The solution is " << (valid ? "valid" : "invalid") << " and fullfills " << ((problemInstance.benchmark / totalTravelTime) * 100) << "% of the benchmark" << '\n';
+
+    // exportIndividual(pop[0], "./../solution.json");
+
+    return pop[0];
 }
