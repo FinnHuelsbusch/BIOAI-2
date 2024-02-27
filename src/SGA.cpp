@@ -6,8 +6,9 @@
 #include <climits>
 #include <spdlog/spdlog.h>
 
-auto isJourneyValid(const Journey &nurseJourney, const ProblemInstance &problemInstance, bool printErrors) -> bool
+auto isJourneyValid(const Journey &nurseJourney, const ProblemInstance &problemInstance) -> bool
 {
+    auto logger = spdlog::get("main_logger");
     if (nurseJourney.empty())
     {
         return true;
@@ -33,19 +34,13 @@ auto isJourneyValid(const Journey &nurseJourney, const ProblemInstance &problemI
         totalTimeSpent += problemInstance.patients.at(patientId).careTime;
         if (totalTimeSpent > problemInstance.patients.at(patientId).endTime)
         {
-            if (printErrors)
-            {
-                std::cout << "Patient " << patientId << " treatment finishes too late" << '\n';
-            }
+            logger->debug("Patient {} treatment finishes too late", patientId);
             return false;
         }
         totalDemand += problemInstance.patients.at(patientId).demand;
         if (totalDemand > problemInstance.nurseCapacity)
         {
-            if (printErrors)
-            {
-                std::cout << "Nurse exceeds the capacity" << '\n';
-            }
+            logger->debug("Nurse exceeds the capacity");
             return false;
         }
     }
@@ -56,17 +51,15 @@ auto isJourneyValid(const Journey &nurseJourney, const ProblemInstance &problemI
     }
     if (totalTimeSpent > problemInstance.depot.returnTime)
     {
-        if (printErrors)
-        {
-            std::cout << "Nurse exceeds the return time" << '\n';
-        }
+        logger->debug("Nurse exceeds the return time");
         return false;
     }
     return true;
 }
 
-auto isSolutionValid(const Genome &genome, const ProblemInstance &problemInstance, bool printErrors) -> bool
+auto isSolutionValid(const Genome &genome, const ProblemInstance &problemInstance) -> bool
 {
+    auto logger = spdlog::get("main_logger");
     // validate that every patient is visited exactly once
     std::map<int, bool> visitedPatients;
     for (const Journey &nurseJourney : genome)
@@ -75,10 +68,7 @@ auto isSolutionValid(const Genome &genome, const ProblemInstance &problemInstanc
         {
             if (visitedPatients[patientId])
             {
-                if (printErrors)
-                {
-                    std::cout << "Patient " << patientId << " is visited more than once" << '\n';
-                }
+                logger->debug("Patient {} is visited more than once", patientId);
                 return false;
             }
             visitedPatients[patientId] = true;
@@ -89,10 +79,7 @@ auto isSolutionValid(const Genome &genome, const ProblemInstance &problemInstanc
     {
         if (!visitedPatients[id])
         {
-            if (printErrors)
-            {
-                std::cout << "Patient " << id << " is not visited" << '\n';
-            }
+            logger->debug("Patient {} is not visited", id);
             return false;
         }
     }
@@ -100,9 +87,9 @@ auto isSolutionValid(const Genome &genome, const ProblemInstance &problemInstanc
     for (int nurseId = 0; nurseId < genome.size(); nurseId++)
     {
         const Journey &nurseJourney = genome[nurseId];
-        if (!isJourneyValid(nurseJourney, problemInstance, printErrors))
+        if (!isJourneyValid(nurseJourney, problemInstance))
         {
-            std::cout << "Nurse " << nurseId << " journey is invalid" << '\n';
+            logger->debug("Journey of nurse {} is invalid", nurseId);
             return false;
         }
     }
@@ -178,11 +165,6 @@ auto evaluateIndividual(Individual *individual, const ProblemInstance &problemIn
     individual->capacityPenality = capacityPenality;
     individual->missingCareTimePenality = missingCareTimePenality;
     individual->toLateToDepotPenality = toLateToDepotPenality;
-
-    // std::cout << "One Candidate: Fitness: " << individual->fitness << std::endl;
-    // std::cout << "One Candidate: Capacity: " << capacityPenality << std::endl;
-    // std::cout << "One Candidate: MissingCareTime: " << individual->missingCareTimePenality << std::endl;
-    // std::cout << "One Candidate: ToLateBack: " << individual->toLateToDepotPenality << std::endl;
 }
 
 auto initializeRandomPopulation(const ProblemInstance &problemInstance, const Config &config) -> Population
@@ -280,7 +262,7 @@ auto initializeFeasiblePopulation(const ProblemInstance &problemInstance, const 
                 else
                 {
                     genome[k].push_back(patient->id);
-                    if (isJourneyValid(genome[k], problemInstance, false))
+                    if (isJourneyValid(genome[k], problemInstance))
                     {
                         int detour = problemInstance.travelTime[k - 1][patient->id] + problemInstance.travelTime[patient->id][0] - problemInstance.travelTime[k - 1][0];
                         if (detour < minDetour)
@@ -316,7 +298,7 @@ auto initializeFeasiblePopulation(const ProblemInstance &problemInstance, const 
             }
         }
         // Create the Individual
-        if (isSolutionValid(genome, problemInstance, true))
+        if (isSolutionValid(genome, problemInstance))
         {
             Individual individual = {genome};
             evaluateIndividual(&individual, problemInstance);
@@ -396,6 +378,7 @@ Individual SGA(ProblemInstance problemInstance, Config config)
 {
     auto main_logger = spdlog::get("main_logger");
     main_logger->info("Starting the SGA");
+    auto statistics_logger = spdlog::get("statistics_logger");
 
 
     //Population pop = initializeFeasiblePopulation(problemInstance, config);
@@ -405,10 +388,12 @@ Individual SGA(ProblemInstance problemInstance, Config config)
                              { return isSolutionValid(individual.genome, problemInstance); });
     if (valid)
     {
+        main_logger->info("The initial population only contains valid solutions");
         std::cout << "The initial population only contains valid solutions" << '\n';
     }
     else
     {
+        main_logger->info("The initial population contains invalid solutions");
         std::cout << "The initial population contains invalid solutions" << '\n';
     }
     RandomGenerator &rng = RandomGenerator::getInstance();
@@ -437,6 +422,8 @@ Individual SGA(ProblemInstance problemInstance, Config config)
         double averageTravelTime = std::accumulate(pop.begin(), pop.end(), 0.0, [problemInstance](double sum, const Individual &individual)
                                                    { return sum + getTotalTravelTime(individual.genome, problemInstance); }) /
                                    pop.size();
+        main_logger->info("Best: {} Avg: {} Worst: {}", getTotalTravelTime(pop[0].genome, problemInstance), averageTravelTime, getTotalTravelTime(pop[pop.size() - 1].genome, problemInstance));
+        statistics_logger->info("Best: {} Avg: {} Worst: {}", getTotalTravelTime(pop[0].genome, problemInstance), averageTravelTime, getTotalTravelTime(pop[pop.size() - 1].genome, problemInstance));
         std::cout << "Best: " << getTotalTravelTime(pop[0].genome, problemInstance) << " Avg: " << averageTravelTime << " Worst: " << getTotalTravelTime(pop[pop.size() - 1].genome, problemInstance) << '\n';
         std::cout << std::endl;
         main_logger->flush();
@@ -444,9 +431,17 @@ Individual SGA(ProblemInstance problemInstance, Config config)
     valid = isSolutionValid(pop[0].genome, problemInstance);
 
     double totalTravelTime = getTotalTravelTime(pop[0].genome, problemInstance);
-    std::cout << "The solution is " << (valid ? "valid" : "invalid") << " and fullfills " << ((problemInstance.benchmark / totalTravelTime) * 100) << "% of the benchmark" << '\n';
-
-    // exportIndividual(pop[0], "./../solution.json");
+    if(valid)
+    {
+        main_logger->info("The solution is valid and fullfills {}% of the benchmark", (problemInstance.benchmark / totalTravelTime) * 100);
+        std::cout << "The solution is valid and fullfills " << ((problemInstance.benchmark / totalTravelTime) * 100) << "% of the benchmark" << '\n';
+    }
+    else
+    {
+        main_logger->info("The solution is invalid and fullfills {}% of the benchmark", (problemInstance.benchmark / totalTravelTime) * 100);
+        std::cout << "The solution is invalid and fullfills " << ((problemInstance.benchmark / totalTravelTime) * 100) << "% of the benchmark" << '\n';
+    }
+    
 
     return pop[0];
 }

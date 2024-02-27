@@ -1,6 +1,7 @@
 #include "mutation.h"
 #include "RandomGenerator.h"
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 auto reassignOnePatient(Genome &genome, const FunctionParameters &parameters) -> Genome
 {
@@ -84,6 +85,8 @@ auto insertWithinJourney(Genome &genome, const FunctionParameters &parameters) -
 
 auto twoOpt(Genome &genome, const FunctionParameters &parameters) -> Genome
 {
+    auto logger = spdlog::get("main_logger");
+    logger->info("Starting 2-opt mutation");
     const ProblemInstance instance = std::get<ProblemInstance>(parameters.at("problem_instance"));
     RandomGenerator& rng = RandomGenerator::getInstance();
     int nurse;
@@ -94,14 +97,13 @@ auto twoOpt(Genome &genome, const FunctionParameters &parameters) -> Genome
         }
     }
     if (nursesWithMoreThanFourPatients.empty()) {
-        std::cout << "No nurse with more than 4 patients found --> no 2-opt possible --> returning original genome" << '\n';
+        logger->warn("No nurse with more than 4 patients found --> no 2-opt possible --> returning original genome");
         return genome;
     }
 
     nurse = nursesWithMoreThanFourPatients[rng.generateRandomInt(0, nursesWithMoreThanFourPatients.size() - 1)];
     bool foundImprovement;
     do{
-        std::cout << "Starting 2-opt" << '\n';
         foundImprovement = false;
         
         for (int i = -1; i <= static_cast<int>(genome[nurse].size() - 2); i++){
@@ -125,7 +127,6 @@ auto twoOpt(Genome &genome, const FunctionParameters &parameters) -> Genome
                     newCost = instance.travelTime[journey[i]][journey[j]] + instance.travelTime[journey[i+1]][journey[j+1]];
                 }     
                 if (newCost < oldCost) {
-                    std::cout << "Found improvement" << '\n';
                     foundImprovement = true;
                     std::reverse(journey.begin() + i + 1, journey.begin() + j + 1);
                     genome[nurse] = journey;

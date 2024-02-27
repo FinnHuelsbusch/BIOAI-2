@@ -1,5 +1,5 @@
 #include "RandomGenerator.h"
-
+#include <spdlog/spdlog.h>
 #include <iostream>
 RandomGenerator* RandomGenerator::instance = nullptr;
 
@@ -23,7 +23,8 @@ void RandomGenerator::setSeed(unsigned int seed)
     }
     else
     {
-        std::cout << "The PRNG was already seeded. Ignoring new seed" << '\n';
+        auto logger = spdlog::get("main_logger");
+        logger->warn("Seed already set, ignoring new seed");
     }
 }
 

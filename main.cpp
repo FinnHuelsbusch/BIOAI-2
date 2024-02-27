@@ -16,13 +16,14 @@
 #include "utils.h"
 #include <functional>
 
-#include <spdlog/sinks/rotating_file_sink.h> // Include the necessary header file
-#include <spdlog/spdlog.h>                   // Include the necessary header file
+#include <spdlog/sinks/basic_file_sink.h> 
+#include <spdlog/spdlog.h>               
 
 using json = nlohmann::json;
 
 auto loadInstance(const std::string &filename) -> ProblemInstance
 {
+    auto logger = spdlog::get("main_logger");
     std::ifstream inputFileStream("./../train/" + filename);
     json data = json::parse(inputFileStream);
     const std::string instanceName = data["instance_name"];
@@ -34,7 +35,7 @@ auto loadInstance(const std::string &filename) -> ProblemInstance
         data["depot"]["return_time"]};
     // load the patients
     const int numberOfPatients = data["patients"].size();
-    std::cout << "Number of patients: " << numberOfPatients << '\n';
+    logger->info("Number of patients: {}", numberOfPatients);
     std::unordered_map<int, Patient> patients;
     patients.reserve(numberOfPatients);
     for (const auto &entry : data["patients"].items())
@@ -46,6 +47,9 @@ auto loadInstance(const std::string &filename) -> ProblemInstance
     const int numberOfNurses = data["nbr_nurses"];
     const int nurseCapacity = data["capacity_nurse"];
     const float benchmark = data["benchmark"];
+    logger->info("Number of nurses: {}", numberOfNurses);
+    logger->info("Nurse capacity: {}", nurseCapacity);
+    logger->info("Benchmark: {}", benchmark);
     std::vector<std::vector<double>> travelTimeMatrix;
     travelTimeMatrix.reserve(numberOfPatients + 1);
     for (const auto &row : data["travel_times"])
@@ -67,7 +71,7 @@ auto loadInstance(const std::string &filename) -> ProblemInstance
         depot,
         patients,
         travelTimeMatrix};
-    std::cout << "Done loading instance: " << instanceName << '\n';
+    logger->info("Instance loaded");
     return problemInstance;
 }
 
@@ -79,7 +83,7 @@ auto runInParallel(ProblemInstance instance, Config config) -> Individual
 
     // Create threads to process each individual
     std::vector<std::thread> threads;
-    for (int i = 0; i < 1; ++i)
+    for (int i = 0; i < 8; ++i)
     { // Adjust num_individuals as needed
         threads.emplace_back([&]()
                              { individuals.push_back(SGA(instance, config)); });
@@ -98,17 +102,23 @@ auto runInParallel(ProblemInstance instance, Config config) -> Individual
 auto main() -> int
 {
 
-    auto rotating_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>("logfile", 1024 * 1024 * 1024, 5);
+    // Create a basic file sink
+    auto main_file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("logfile.txt");
+    auto statistics_file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("statistics.txt");
 
-    // Create a logger with the rotating file sink
-    auto logger = std::make_shared<spdlog::logger>("main_logger", rotating_sink);
+    // Create a logger with the basic file sink
+    auto logger = std::make_shared<spdlog::logger>("main_logger", main_file_sink);
+    auto statistics_logger = std::make_shared<spdlog::logger>("statistics_logger", statistics_file_sink);
 
-    // Set the logging pattern if needed
-    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
+    // Set the logging pattern with the thread id
+    logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%t] [%l] %v");
+    statistics_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%t] [%l] %v");
 
     // Register the logger
     spdlog::register_logger(logger);
-    logger->info("Starting the program");
+    spdlog::register_logger(statistics_logger);
+
+    logger->info("Loggers created, starting program");
 
     ProblemInstance problemInstance = loadInstance("train_0.json");
     RandomGenerator &rng = RandomGenerator::getInstance();
@@ -143,7 +153,10 @@ auto main() -> int
                            rouletteWheelSurvivorSelectionConfiguration);
 
     Individual result = runInParallel(problemInstance, config);
-    std::cout << result.fitness << std::endl;
+    logger->info("Best individual: {}", result.fitness);
+    logger->info("Exporting best individual to json");
+    exportIndividual(result, "./../solution.json");
+    logger->info("Best individual exported to solution.json");
 
     return 0;
 }
