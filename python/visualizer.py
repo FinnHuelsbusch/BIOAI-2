@@ -107,14 +107,14 @@ def visualizeTripsOnMap(individual : Individual, problem_instance : ProblemInsta
     for trip, color in zip(individual.genome, colors):
         if len(trip) == 0:
             continue
-        # add the first trip to the plot
-        ax.plot([problem_instance.depot.xCoord, problem_instance.patients[trip[0]].xCoord], [problem_instance.depot.yCoord, problem_instance.patients[trip[0]].yCoord], color=color)
+        # add the first trip to the plot as arrow
+        ax.arrow(problem_instance.depot.xCoord, problem_instance.depot.yCoord, problem_instance.patients[trip[0]].xCoord - problem_instance.depot.xCoord, problem_instance.patients[trip[0]].yCoord - problem_instance.depot.yCoord, head_width=0.5, head_length=0.5, fc=color, ec=color)
         # iterate through the trip
         for i in range(1, len(trip)): 
-            # add the trip to the plot
-            ax.plot([problem_instance.patients[trip[i-1]].xCoord, problem_instance.patients[trip[i]].xCoord], [problem_instance.patients[trip[i-1]].yCoord, problem_instance.patients[trip[i]].yCoord], color=color)            
+            # add the trip to the plot as arrow
+            ax.arrow(problem_instance.patients[trip[i-1]].xCoord, problem_instance.patients[trip[i-1]].yCoord, problem_instance.patients[trip[i]].xCoord - problem_instance.patients[trip[i-1]].xCoord, problem_instance.patients[trip[i]].yCoord - problem_instance.patients[trip[i-1]].yCoord, head_width=0.5, head_length=0.5, fc=color, ec=color)
         # add the return trip to the plot
-        ax.plot([problem_instance.patients[trip[-1]].xCoord, problem_instance.depot.xCoord], [problem_instance.patients[trip[-1]].yCoord, problem_instance.depot.yCoord], color=color)
+        ax.arrow(problem_instance.patients[trip[-1]].xCoord, problem_instance.patients[trip[-1]].yCoord, problem_instance.depot.xCoord - problem_instance.patients[trip[-1]].xCoord, problem_instance.depot.yCoord - problem_instance.patients[trip[-1]].yCoord, head_width=0.5, head_length=0.5, fc=color, ec=color)
     # display the plot
     plt.show()
 
@@ -253,6 +253,5 @@ if __name__ == "__main__":
     individual = Individual("solution.json")
     # visualize the individual
     visualizeAsGantChart(individual, problem_instance)
-    # print distance from patient 87 to patient 86 
-    print(problem_instance.travelTime[87][86])
+    visualizeTripsOnMap(individual, problem_instance)
     
