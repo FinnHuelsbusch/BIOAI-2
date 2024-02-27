@@ -1,5 +1,6 @@
 {
     "instance_name": "train_0",
+    "benchmark": 828,
     "nbr_nurses": 25,
     "capacity_nurse": 200,
     "depot": {
