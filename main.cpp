@@ -95,39 +95,6 @@ auto runInParallel(ProblemInstance instance, Config config) -> Individual
 auto main() -> int
 {
     ProblemInstance problemInstance = loadInstance("train_0.json");
-    Genome genome = {
-        {1, 2, 3, 4},
-        {8, 5, 6, 7},
-        {10, 11, 9, 12},
-        {13, 15, 16, 14},
-        {20, 17, 18, 19},
-        {24, 21, 23, 22},
-        {25, 27, 28, 26},
-        {32, 29, 30, 31},
-        {33, 34, 35, 36},
-        {40, 38, 39, 37},
-        {43, 42, 41, 44, 45, 47},
-        {46, 48, 49},
-        {50, 51, 52},
-        {55, 54, 53, 56},
-        {57, 58, 60, 59},
-        {63, 62, 61, 64},
-        {67, 65, 68, 66},
-        {72, 71, 70, 69},
-        {75, 76, 74, 73},
-        {78, 77, 79, 80},
-        {81, 82, 83, 84},
-        {87, 86, 85, 88},
-        {90, 92, 91, 89},
-        {93, 94, 95, 96},
-        {97, 100, 99, 98}};
-    Individual individual = {genome};
-    evaluateIndividual(&individual, problemInstance);
-    std::cout
-        << "Handcrafted genome is valid: " << isSolutionValid(genome, problemInstance) << '\n';
-    std::cout << "Handcrafted genome fitness: " << individual.fitness << '\n';
-    std::cout << "Handcrafted genome total travel time: " << getTotalTravelTime(genome, problemInstance) << '\n';
-
     RandomGenerator &rng = RandomGenerator::getInstance();
     rng.setSeed(42);
 
