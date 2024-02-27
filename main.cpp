@@ -7,7 +7,6 @@
 #include "structures.h"
 #include "RandomGenerator.h"
 #include "SGA.h"
-
 #include "parentSelection.h"
 #include "crossover.h"
 #include "mutation.h"
@@ -17,6 +16,9 @@
 #include "utils.h"
 #include <functional>
 
+#include <spdlog/sinks/rotating_file_sink.h> // Include the necessary header file
+#include <spdlog/spdlog.h>                   // Include the necessary header file
+
 using json = nlohmann::json;
 
 auto loadInstance(const std::string &filename) -> ProblemInstance
@@ -24,7 +26,7 @@ auto loadInstance(const std::string &filename) -> ProblemInstance
     std::ifstream inputFileStream("./../train/" + filename);
     json data = json::parse(inputFileStream);
     const std::string instanceName = data["instance_name"];
-    std::cout << "Loading instance: " << instanceName << '\n';
+    spdlog::get("main_logger")->info("Loading instance: {}", instanceName);
     // load the depot
     Depot depot = {
         data["depot"]["x_coord"],
@@ -77,7 +79,7 @@ auto runInParallel(ProblemInstance instance, Config config) -> Individual
 
     // Create threads to process each individual
     std::vector<std::thread> threads;
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < 1; ++i)
     { // Adjust num_individuals as needed
         threads.emplace_back([&]()
                              { individuals.push_back(SGA(instance, config)); });
@@ -90,16 +92,29 @@ auto runInParallel(ProblemInstance instance, Config config) -> Individual
     }
 
     sortPopulationByFitness(individuals, false);
-    return results[0];
+    return individuals[0];
 }
 
 auto main() -> int
 {
+
+    auto rotating_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>("logfile", 1024 * 1024 * 1024, 5);
+
+    // Create a logger with the rotating file sink
+    auto logger = std::make_shared<spdlog::logger>("main_logger", rotating_sink);
+
+    // Set the logging pattern if needed
+    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
+
+    // Register the logger
+    spdlog::register_logger(logger);
+    logger->info("Starting the program");
+
     ProblemInstance problemInstance = loadInstance("train_0.json");
     RandomGenerator &rng = RandomGenerator::getInstance();
     rng.setSeed(42);
 
-    const int populationSize = 1000;
+    const int populationSize = 100;
 
     // parent selection
     FunctionParameters rouletteWheelSelectionConfigurationParams = {{"populationSize", populationSize}};

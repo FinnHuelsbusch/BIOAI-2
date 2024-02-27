@@ -1,10 +1,10 @@
 #include "SGA.h"
 #include "structures.h"
-
 #include "utils.h"
 #include "RandomGenerator.h"
 #include <iostream>
 #include <climits>
+#include <spdlog/spdlog.h>
 
 auto isJourneyValid(const Journey &nurseJourney, const ProblemInstance &problemInstance, bool printErrors) -> bool
 {
@@ -172,7 +172,7 @@ auto evaluateIndividual(Individual *individual, const ProblemInstance &problemIn
         combinedTripTime += nurseTripTime;
     }
 
-    double fitness = -combinedTripTime - capacityPenality * 1000 - missingCareTimePenality * 100 - toLateToDepotPenality * 100;
+    double fitness = -combinedTripTime - capacityPenality * 100000 - missingCareTimePenality * 10000 - toLateToDepotPenality * 10000;
 
     individual->fitness = fitness;
     individual->capacityPenality = capacityPenality;
@@ -394,9 +394,12 @@ auto applyMutation(Population &population, MuationConfiguration &mutation, Probl
 
 Individual SGA(ProblemInstance problemInstance, Config config)
 {
+    auto main_logger = spdlog::get("main_logger");
+    main_logger->info("Starting the SGA");
 
-    Population pop = initializeFeasiblePopulation(problemInstance, config);
-    // Population pop = initializeRandomPopulation(problemInstance, config);
+
+    //Population pop = initializeFeasiblePopulation(problemInstance, config);
+    Population pop = initializeRandomPopulation(problemInstance, config);
     //  check if population only contains valid solutions
     bool valid = std::all_of(pop.begin(), pop.end(), [&](const Individual &individual)
                              { return isSolutionValid(individual.genome, problemInstance); });
@@ -429,13 +432,14 @@ Individual SGA(ProblemInstance problemInstance, Config config)
         pop = config.survivorSelection.first(pop, children, config.survivorSelection.second);
 
         // Log values after
-        sortPopulationByTravelTime(pop, true, problemInstance);
+        sortPopulationByTravelTime(pop, false, problemInstance);
         // Average fitness
         double averageTravelTime = std::accumulate(pop.begin(), pop.end(), 0.0, [problemInstance](double sum, const Individual &individual)
                                                    { return sum + getTotalTravelTime(individual.genome, problemInstance); }) /
                                    pop.size();
         std::cout << "Best: " << getTotalTravelTime(pop[0].genome, problemInstance) << " Avg: " << averageTravelTime << " Worst: " << getTotalTravelTime(pop[pop.size() - 1].genome, problemInstance) << '\n';
         std::cout << std::endl;
+        main_logger->flush();
     }
     valid = isSolutionValid(pop[0].genome, problemInstance);
 
