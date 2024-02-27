@@ -330,32 +330,6 @@ auto initializeFeasiblePopulation(const ProblemInstance &problemInstance, const 
     return pop;
 }
 
-auto getTotalTravelTime(const Genome &genome, const ProblemInstance &problemInstance) -> double
-{
-    double totalTravelTime = 0;
-    for (Journey nurseJourney : genome)
-    {
-        for (int i = 0; i < nurseJourney.size(); i++)
-        {
-            int patientId = nurseJourney[i];
-            int previousPatientId = nurseJourney[i - 1];
-            if (i == 0)
-            {
-                totalTravelTime += problemInstance.travelTime[0][patientId];
-            }
-            else
-            {
-                totalTravelTime += problemInstance.travelTime[previousPatientId][patientId];
-            }
-        }
-        // add the driving time from the last patient to the depot if there is at least one patient
-        if (!nurseJourney.empty())
-        {
-            totalTravelTime += problemInstance.travelTime[nurseJourney[nurseJourney.size() - 1]][0];
-        }
-    }
-    return totalTravelTime;
-}
 auto applyCrossover(Population &parents, CrossoverConfiguration &crossover, ProblemInstance &problemInstance) -> Population
 {
     Population children = std::vector<Individual>();
@@ -455,7 +429,7 @@ Individual SGA(ProblemInstance &problemInstance, Config &config)
         pop = config.survivorSelection.first(pop, children, config.survivorSelection.second);
 
         // Log values after
-        pop = sortPopulation(pop, false);
+        sortPopulationByTravelTime(pop, true, problemInstance);
         // Average fitness
         double averageTravelTime = std::accumulate(pop.begin(), pop.end(), 0.0, [problemInstance](double sum, const Individual &individual)
                                                    { return sum + getTotalTravelTime(individual.genome, problemInstance); }) /

@@ -90,7 +90,8 @@ auto runInParallel(const ProblemInstance instance, const Config config) -> Indiv
         results.push_back(future.get());
     }
 
-    return sortPopulation(results, false)[0];
+    sortPopulationByFitness(results, false);
+    return results[0];
 }
 
 auto main() -> int
@@ -122,7 +123,7 @@ auto main() -> int
     SurvivorSelectionConfiguration rouletteWheelSurvivorSelectionConfiguration = {rouletteWheelReplacement, rouletteWheelSelectionConfigurationParams};
 
     Config config = Config(populationSize, 100, false,
-                           rouletteWheelSelectionConfiguration,
+                           tournamentSelectionConfiguration,
                            order1CrossoverConfiguration,
                            reassignOnePatientConfiguration,
                            rouletteWheelSurvivorSelectionConfiguration);

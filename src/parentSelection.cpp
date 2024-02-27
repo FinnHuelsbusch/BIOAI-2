@@ -67,7 +67,8 @@ auto tournamentSelection(const Population &population, const FunctionParameters 
             int index = rng.generateRandomInt(0, population.size() - 1);
             tournament.push_back(population[index]);
         }
-        parents.push_back(*std::max_element(tournament.begin(), tournament.end(), compareByFitness));
+        parents.push_back(*std::max_element(tournament.begin(), tournament.end(), [](const Individual &individualA, const Individual &individualB)
+                                           { return individualA.fitness < individualB.fitness; }));
     }
     return parents;
 }

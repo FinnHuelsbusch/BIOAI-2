@@ -9,24 +9,59 @@
 using json = nlohmann::json;
 
 
-// custom comparator for sorting the population
-auto compareByFitness(const Individual &individualA, const Individual &individualB) -> bool
+auto getTotalTravelTime(const Genome &genome, const ProblemInstance &problemInstance) -> double
 {
-    // sort in descending order (highest fitness first)
-    return individualA.fitness < individualB.fitness;
+    double totalTravelTime = 0;
+    for (Journey nurseJourney : genome)
+    {
+        for (int i = 0; i < nurseJourney.size(); i++)
+        {
+            int patientId = nurseJourney[i];
+            int previousPatientId = nurseJourney[i - 1];
+            if (i == 0)
+            {
+                totalTravelTime += problemInstance.travelTime[0][patientId];
+            }
+            else
+            {
+                totalTravelTime += problemInstance.travelTime[previousPatientId][patientId];
+            }
+        }
+        // add the driving time from the last patient to the depot if there is at least one patient
+        if (!nurseJourney.empty())
+        {
+            totalTravelTime += problemInstance.travelTime[nurseJourney[nurseJourney.size() - 1]][0];
+        }
+    }
+    return totalTravelTime;
 }
 
-auto sortPopulation(Population population, bool ascending) -> Population
+auto sortPopulationByFitness(Population& population, bool ascending) -> void
 {
     if (ascending) {
-        std::sort(population.begin(), population.end(), compareByFitness);
+        std::sort(population.begin(), population.end(), [](const Individual& individualA, const Individual& individualB) {
+            return individualA.fitness < individualB.fitness;
+        });
     }
     else {
         std::sort(population.begin(), population.end(), [](const Individual& individualA, const Individual& individualB) {
             return individualA.fitness > individualB.fitness;
         });
     }
-    return population;
+}
+
+auto sortPopulationByTravelTime(Population population, bool ascending, const ProblemInstance &problemInstance) -> void
+{
+    if (ascending) {
+        std::sort(population.begin(), population.end(), [&problemInstance](const Individual& individualA, const Individual& individualB) {
+            return getTotalTravelTime(individualA.genome, problemInstance) < getTotalTravelTime(individualB.genome, problemInstance);
+        });
+    }
+    else {
+        std::sort(population.begin(), population.end(), [&problemInstance](const Individual& individualA, const Individual& individualB) {
+            return getTotalTravelTime(individualA.genome, problemInstance) > getTotalTravelTime(individualB.genome, problemInstance);
+        });
+    }
 }
 
 void printGenome(const Genome& genome){

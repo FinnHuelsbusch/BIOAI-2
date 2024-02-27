@@ -2,11 +2,14 @@
 #include <vector>
 #include "structures.h"
 
-// Custom comparator for sorting the population
-auto compareByFitness(const Individual &individualA, const Individual &individualB) -> bool;
+// Function to calculate the total travel time of a genome
+auto getTotalTravelTime(const Genome &genome, const ProblemInstance &problemInstance) -> double;
 
 // Function to sort the population based on fitness in ascending or descending order
-auto sortPopulation(Population population, bool ascending) -> Population;
+auto sortPopulationByFitness(Population& population, bool ascending) -> void;
+
+// Function to sort the population based on travel time in ascending or descending order
+auto sortPopulationByTravelTime(Population population, bool ascending, const ProblemInstance &problemInstance) -> void;
 
 // Function to print the genome
 void printGenome(const Genome& parent);
