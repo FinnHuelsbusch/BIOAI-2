@@ -105,6 +105,8 @@ def visualizeTripsOnMap(genome : List[List[int]], problem_instance : ProblemInst
         fig, ax = plt.subplots()
     # add the depot to the plot
     ax.scatter(problem_instance.depot.xCoord, problem_instance.depot.yCoord, color='red')
+    # add the patients to the plot
+    ax.scatter([patient.xCoord for patient in problem_instance.patients.values()], [patient.yCoord for patient in problem_instance.patients.values()], color='blue')
     # generate as many colors as there are nurses
     colors = sns.color_palette('hsv', problem_instance.numberOfNurses)
     # iterate through the different trips 
@@ -126,7 +128,6 @@ def read_log_file(file_path):
     with open(file_path, 'r') as file:
         lines = file.readlines()
     logfile_data = {}
-    # [2024-02-27 18:09:24.864] [262614] [debug] Name: Reference Generation: 0 Genome: [[33, ], [54, 72, 74, 14, 84, ], [28, 9, 17, 27, ], [95, 64, 76, ], [90, 82, ], [71, 65, 6, ], [], [30, 94, 42, 31, 34, 7, ], [49, 97, 38, 29, 73, 22, 78, ], [1, 10, 48, 11, 35, ], [36, 43, 86, 52, 19, ], [53, 50, 23, 96, 21, 62, ], [45, 92, ], [75, 24, 40, ], [46, 85, 56, 8, ], [81, 13, 89, 88, 99, 68, ], [16, 77, 47, 80, ], [32, 25, 91, ], [3, 93, 20, 2, 55, 87, 15, ], [59, 41, 61, 57, 51, 60, 98, ], [37, 79, 5, 4, 66, ], [70, 18, 26, 44, ], [39, 100, 83, ], [69, 12, 63, ], [58, 67, ], ]
     for i, line in enumerate(lines):
         if '[debug] Name: ' in line:
             thread_id = line.split('[')[2].split(']')[0]
@@ -289,7 +290,7 @@ def animateTripsOnMap(genomes, problem_instance, filename='animation.gif'):
         visualizeTripsOnMap(genome, problem_instance, ax)
 
     # Create an animation
-    animation = FuncAnimation(fig, update, frames=len(genomes), repeat=False, interval=500)
+    animation = FuncAnimation(fig, update, frames=len(genomes), repeat=False, interval=250)
 
     # Save the animation to gif
     animation.save(filename, writer='imagemagick', fps=1)
