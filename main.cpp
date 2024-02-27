@@ -80,7 +80,7 @@ auto runInParallel(const ProblemInstance instance, const Config config) -> Indiv
     // Run functions asynchronously
     for (const auto &param : params)
     {
-        futures.push_back(std::async(std::launch::async, SGA, std::ref(instance), std::ref(config)));
+        futures.push_back(std::async(std::launch::async, SGA, std::ref(const_cast<ProblemInstance&>(instance)), std::ref(const_cast<Config&>(config))));
     }
 
     // Retrieve results and store in an array
