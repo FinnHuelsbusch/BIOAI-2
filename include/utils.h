@@ -9,7 +9,7 @@ auto getTotalTravelTime(const Genome &genome, const ProblemInstance &problemInst
 auto sortPopulationByFitness(Population& population, bool ascending) -> void;
 
 // Function to sort the population based on travel time in ascending or descending order
-auto sortPopulationByTravelTime(Population population, bool ascending, const ProblemInstance &problemInstance) -> void;
+auto sortPopulationByTravelTime(Population& population, bool ascending, const ProblemInstance &problemInstance) -> void;
 
 // Function to print the genome
 void printGenome(const Genome& parent);

@@ -50,16 +50,16 @@ auto sortPopulationByFitness(Population& population, bool ascending) -> void
     }
 }
 
-auto sortPopulationByTravelTime(Population population, bool ascending, const ProblemInstance &problemInstance) -> void
+auto sortPopulationByTravelTime(Population& population, bool ascending, const ProblemInstance &problemInstance) -> void
 {
     if (ascending) {
         std::sort(population.begin(), population.end(), [&problemInstance](const Individual& individualA, const Individual& individualB) {
-            return getTotalTravelTime(individualA.genome, problemInstance) < getTotalTravelTime(individualB.genome, problemInstance);
+            return getTotalTravelTime(individualA.genome, problemInstance) > getTotalTravelTime(individualB.genome, problemInstance);
         });
     }
     else {
         std::sort(population.begin(), population.end(), [&problemInstance](const Individual& individualA, const Individual& individualB) {
-            return getTotalTravelTime(individualA.genome, problemInstance) > getTotalTravelTime(individualB.genome, problemInstance);
+            return getTotalTravelTime(individualA.genome, problemInstance) < getTotalTravelTime(individualB.genome, problemInstance);
         });
     }
 }
