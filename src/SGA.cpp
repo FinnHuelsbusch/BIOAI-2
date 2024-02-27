@@ -380,11 +380,8 @@ Individual SGA(ProblemInstance problemInstance, Config config)
     main_logger->info("Starting the SGA");
     auto statistics_logger = spdlog::get("statistics_logger");
 
-
     //Population pop = initializeFeasiblePopulation(problemInstance, config);
     Population pop = initializeRandomPopulation(problemInstance, config);
-    Individual* referenceIndividual = &pop[0];
-    logGenome(referenceIndividual->genome, "Reference", 0);
     sortPopulationByFitness(pop, false);
     logGenome(pop[0].genome, "Best", 0);
     //  check if population only contains valid solutions
@@ -432,7 +429,6 @@ Individual SGA(ProblemInstance problemInstance, Config config)
         std::cout << std::endl;
         // Log the best and reference individual
         logGenome(pop[0].genome, "Best", currentGeneration);
-        //logGenome(referenceIndividual->genome, "Reference", currentGeneration);
         main_logger->flush();
     }
     valid = isSolutionValid(pop[0].genome, problemInstance);
