@@ -12,7 +12,7 @@ auto isJourneyValid(const Journey &nurseJourney, const ProblemInstance &problemI
     {
         return true;
     }
-    int totalTimeSpent = 0;
+    double totalTimeSpent = 0.0;
     int totalDemand = 0;
     for (int j = 0; j < nurseJourney.size(); j++)
     {
@@ -422,7 +422,7 @@ void SGA(ProblemInstance &problemInstance, Config &config)
 {
 
     Population pop = initializeFeasiblePopulation(problemInstance, config);
-    // Population pop = initializeRandomPopulation(problemInstance, config);
+    //Population pop = initializeRandomPopulation(problemInstance, config);
     // check if population only contains valid solutions
     bool valid = std::all_of(pop.begin(), pop.end(), [&](const Individual &individual)
                              { return isSolutionValid(individual.genome, problemInstance); });
@@ -492,6 +492,7 @@ void SGA(ProblemInstance &problemInstance, Config &config)
         std::cout << "The solution is " << totalTravelTime - problemInstance.benchmark << " time units worse than the benchmark" << '\n';
         std::cout << "The solution is " << (problemInstance.benchmark - totalTravelTime) * 100 << "% worse than the benchmark" << '\n';
     }
+    isSolutionValid(pop[0].genome, problemInstance, true);
 
     exportIndividual(pop[0], "./../solution.json");
 }
