@@ -418,7 +418,7 @@ auto applyMutation(Population &population, MuationConfiguration &mutation, Probl
     return population;
 }
 
-Individual SGA(ProblemInstance &problemInstance, Config &config)
+Individual SGA(ProblemInstance problemInstance, Config config)
 {
 
     Population pop = initializeFeasiblePopulation(problemInstance, config);
