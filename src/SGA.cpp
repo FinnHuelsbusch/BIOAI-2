@@ -437,38 +437,30 @@ void SGA(ProblemInstance &problemInstance, Config &config)
     RandomGenerator &rng = RandomGenerator::getInstance();
     for (int currentGeneration = 0; currentGeneration < config.numberOfGenerations; currentGeneration++)
     {
-        // Average fitness
-        double averageFitness = std::accumulate(pop.begin(), pop.end(), 0.0, [](double sum, const Individual &individual)
-                                                { return sum + individual.fitness; }) /
-                                pop.size();
-        std::cout << "Generation " << currentGeneration << " average population fitness: " << averageFitness << '\n';
+        std::cout << "Generation: " << currentGeneration << '\n';
 
         // Parent selection
-        std::cout << "Parent selection";
+        std::cout << "SEL|";
         Population parents = config.parentSelection.first(pop, config.parentSelection.second);
-        // Average parent fitness
-        double averageParentFitness = std::accumulate(parents.begin(), parents.end(), 0.0, [](double sum, const Individual &individual)
-                                                      { return sum + individual.fitness; }) /
-                                      parents.size();
-        std::cout << "Generation " << currentGeneration << " average parent fitness: " << averageParentFitness << '\n';
+
         // Crossover
-        // Population children = parents;
-        std::cout << "Crossover";
+        std::cout << "CROSS|";
         Population children = applyCrossover(parents, config.crossover, problemInstance);
         // Mutation
-        std::cout << "Mutation";
+        std::cout << "MUT|";
         children = applyMutation(children, config.mutation, problemInstance);
-        // log children fitness
-        double averageChildrenFitness = std::accumulate(children.begin(), children.end(), 0.0, [](double sum, const Individual &individual)
-                                                        { return sum + individual.fitness; }) /
-                                        children.size();
-        std::cout
-            << "Generation " << currentGeneration << " average children fitness: " << averageChildrenFitness << '\n';
+
         // Survivor selection
-        std::cout << "Survivor selection";
+        std::cout << "SURV_SEL" << '\n';
         pop = config.survivorSelection.first(pop, children, config.survivorSelection.second);
+
+        // Log values after
         pop = sortPopulation(pop, false);
-        std::cout << "Generation " << currentGeneration << "\nBest fitness: " << pop[0].fitness << "\nWorst fitness: " << pop[pop.size() - 1].fitness << '\n';
+        // Average fitness
+        double averageTravelTime = std::accumulate(pop.begin(), pop.end(), 0.0, [problemInstance](double sum, const Individual &individual)
+                                                   { return sum + getTotalTravelTime(individual.genome, problemInstance); }) /
+                                   pop.size();
+        std::cout << "Best: " << getTotalTravelTime(pop[0].genome, problemInstance) << " Avg: " << averageTravelTime << " Worst: " << getTotalTravelTime(pop[pop.size() - 1].genome, problemInstance) << '\n';
         std::cout << std::endl;
     }
     valid = isSolutionValid(pop[0].genome, problemInstance);
