@@ -81,9 +81,9 @@ auto insertWithinJourney(Genome &genome, const FunctionParameters &parameters) -
     int patient = genome[nurse][patientIndex];
     int insertionPoint;
     do{
-        insertionPoint = rng.generateRandomInt(0, genome[nurse].size());
+        insertionPoint = rng.generateRandomInt(0, genome[nurse].size() - 1);
     }while(insertionPoint == patientIndex);
-    logger->trace("Inserting patient {} at index {} in nurse {}", patient, insertionPoint, nurse);
+    logger->trace("Inserting patient {} from index {} at index {} in nurse {}", patient, patientIndex, insertionPoint, nurse);
     logger->trace("Trip before mutation: {}", fmt::join(genome[nurse], ", "));
     // insert patient at insertion point
     genome[nurse].erase(genome[nurse].begin() + patientIndex);
