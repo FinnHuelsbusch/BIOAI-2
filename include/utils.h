@@ -28,3 +28,5 @@ auto isJourneyValid(const Journey &nurseJourney, const ProblemInstance &problemI
 
 // Function to check if a genome is valid
 auto isSolutionValid(const Genome &genome, const ProblemInstance &problemInstance) -> bool;
+
+auto initLogger() -> void;
