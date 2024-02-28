@@ -96,6 +96,12 @@ auto runInParallel(ProblemInstance instance, Config config) -> Individual
     }
 
     sortPopulationByFitness(individuals, false);
+    for (int i = 0; i < individuals.size(); i++)
+    {
+        if(isSolutionValid(individuals[i].genome, instance)){
+            return individuals[i];
+        }
+    }
     return individuals[0];
 }
 
@@ -128,8 +134,8 @@ auto main() -> int
 
 
     #if defined(PRODUCTION)
-        logger->set_level(spdlog::level::info);
-        statistics_logger->set_level(spdlog::level::info);
+        logger->set_level(spdlog::level::trace);
+        statistics_logger->set_level(spdlog::level::trace);
     #else
         logger->set_level(spdlog::level::trace);
         statistics_logger->set_level(spdlog::level::trace);
@@ -145,7 +151,7 @@ auto main() -> int
     RandomGenerator &rng = RandomGenerator::getInstance();
     rng.setSeed(42);
 
-    const int populationSize = 100;
+    const int populationSize = 5000;
 
     // parent selection
     FunctionParameters rouletteWheelSelectionConfigurationParams = {{"populationSize", populationSize}};
@@ -156,24 +162,32 @@ auto main() -> int
     CrossoverConfiguration order1CrossoverConfiguration = {{order1Crossover, 0.3}};
     CrossoverConfiguration partiallyMappedCrossoverConfiguration = {{partiallyMappedCrossover, 0.2}};
     CrossoverConfiguration edgeRecombinationConfiguration = {{edgeRecombination, 0.8}};
+    CrossoverConfiguration partiallyMappedCrossoverAndEdgeRecombinationConfiguration = {{partiallyMappedCrossover, 0.2}, {edgeRecombination, 0.2}};
     // mutation
     FunctionParameters emptyParams;
     MuationConfiguration reassignOnePatientConfiguration = {{reassignOnePatient, emptyParams, 0.01}};
-    MuationConfiguration everyMutationConfiguration = {{reassignOnePatient, emptyParams, 0.001},
-                                                       {insertWithinJourney, emptyParams, 0.001},
-                                                       {swapBetweenJourneys, emptyParams, 0.001},
-                                                       {swapWithinJourney, emptyParams, 0.001}};
+    MuationConfiguration everyMutationConfiguration = {{reassignOnePatient, emptyParams, 0.01},
+                                                       //{insertWithinJourney, emptyParams, 0.001},
+                                                       {swapBetweenJourneys, emptyParams, 0.01},
+                                                       {swapWithinJourney, emptyParams, 0.01}};
     // survivor selection
     SurvivorSelectionConfiguration fullReplacementConfiguration = {fullReplacement, emptyParams};
     SurvivorSelectionConfiguration rouletteWheelSurvivorSelectionConfiguration = {rouletteWheelReplacement, rouletteWheelSelectionConfigurationParams};
 
-    Config config = Config(populationSize, 100, false,
+    Config config = Config(populationSize, 500, false,
                            tournamentSelectionConfiguration,
-                           order1CrossoverConfiguration,
-                           reassignOnePatientConfiguration,
+                           partiallyMappedCrossoverAndEdgeRecombinationConfiguration,
+                           everyMutationConfiguration,
                            rouletteWheelSurvivorSelectionConfiguration);
 
     Individual result = runInParallel(problemInstance, config);
+    std::cout << "Overall Fittest individual has fitness: " << result.fitness << std::endl;
+    if(isSolutionValid(result.genome, problemInstance)){
+        std::cout << "Overall Fittest individual is valid" << std::endl;
+    } else {
+        std::cout << "Overall Fittest individual is invalid" << std::endl;
+    }
+    std::cout << "Overall Fittest individual uses " <<  100 / problemInstance.benchmark * getTotalTravelTime(result.genome, problemInstance)   << "% of the benchmarks time" << std::endl;
     logger->info("Best individual: {}", result.fitness);
     logger->info("Exporting best individual to json");
     exportIndividual(result, "./../solution.json");
