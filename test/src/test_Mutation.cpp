@@ -277,6 +277,104 @@ TEST_F(MutationTestFixture, insertWithinJourney_JourneyIsToShort){
     EXPECT_EQ(result, expectedGenome);
 }
 
+TEST_F(MutationTestFixture, insertWithinJourney_SourceAndTargetIndexAreIdentical){
+    Genome genome = {{1, 2, 3, 4, 5},
+                     {6, 7, 8, 9, 10}};
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0))  // nurse
+        .WillOnce(testing::Return(3))  // patient index
+        .WillOnce(testing::Return(3))  // insertion point
+        .WillOnce(testing::Return(0)); // insertion point resampled
+
+    Genome expectedGenome = {{4, 1, 2, 3, 5},
+                             {6, 7, 8, 9, 10}};
+    Genome result = insertWithinJourney(genome, {});
+    EXPECT_EQ(result, expectedGenome);
+
+}
+
+TEST_F(MutationTestFixture, insertWithinJourney_MinimalJourneyLength){
+    Genome genome = {{1, 2},
+                     {6, 7, 8, 9, 10}};
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0))  // nurse
+        .WillOnce(testing::Return(0))  // patient index
+        .WillOnce(testing::Return(1)); // insertion point
+
+
+    Genome expectedGenome = {{2,1}, 
+                            {6, 7, 8, 9, 10}};
+    Genome result = insertWithinJourney(genome, {});
+    EXPECT_EQ(result, expectedGenome);
+
+}
+
+TEST_F(MutationTestFixture, insertWithinJourney_MoveToTheEnd){
+    Genome genome = {{1, 2, 3, 4, 5},
+                     {6, 7, 8, 9, 10}};
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0))  // nurse
+        .WillOnce(testing::Return(1))  // patient index
+        .WillOnce(testing::Return(4)); // insertion point
+
+    Genome expectedGenome = {{1,3,4,5,2},
+                             {6, 7, 8, 9, 10}};
+    Genome result = insertWithinJourney(genome, {});
+    EXPECT_EQ(result, expectedGenome);
+}
+
+TEST_F(MutationTestFixture, insertWithinJourney_EmptySource){
+    Genome genome = {{},
+                     {1, 2, 3, 4, 5},
+                     {6, 7, 8, 9, 10}};
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0))  // nurse
+        .WillOnce(testing::Return(1))  // nurse resampled
+        .WillOnce(testing::Return(1))  // patient index
+        .WillOnce(testing::Return(2)); // insertion point
+
+    Genome expectedGenome = {{},
+                             {1, 3, 2, 4, 5},
+                             {6, 7, 8, 9, 10}};
+    Genome result = insertWithinJourney(genome, {});
+    EXPECT_EQ(result, expectedGenome);
+}
+
+TEST_F(MutationTestFixture, insertWithinJourney_firstPatientMovedToTheEnd){
+    Genome genome = {{1, 2, 3, 4, 5},
+                     {6, 7, 8, 9, 10}};
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0))  // nurse
+        .WillOnce(testing::Return(0))  // patient index
+        .WillOnce(testing::Return(4)); // insertion point
+
+    Genome expectedGenome = {{2, 3, 4, 5, 1},
+                             {6, 7, 8, 9, 10}};
+    Genome result = insertWithinJourney(genome, {});
+    EXPECT_EQ(result, expectedGenome);
+
+}
+
+TEST_F(MutationTestFixture, insertWithinJourney_lastPatientMovedToTheBeginning){
+    Genome genome = {{1, 2, 3, 4, 5},
+                     {6, 7, 8, 9, 10}};
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0))  // nurse
+        .WillOnce(testing::Return(4))  // patient index
+        .WillOnce(testing::Return(0)); // insertion point
+
+    Genome expectedGenome = {{5, 1, 2, 3, 4},
+                             {6, 7, 8, 9, 10}};
+    Genome result = insertWithinJourney(genome, {});
+    EXPECT_EQ(result, expectedGenome);
+}
+
 TEST_F(MutationTestFixture, twoOpt_standardCase) {
     std::unordered_map<int, Patient> patients = {
         {1, {1, 0, 0, 0, 0, 2, 0}},
