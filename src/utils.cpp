@@ -124,3 +124,93 @@ auto exportIndividual(const Individual& individual, const std::string& path) -> 
     outputFileStream << individualJson.dump(4);
     outputFileStream.close();
 }
+
+auto isJourneyValid(const Journey &nurseJourney, const ProblemInstance &problemInstance) -> bool
+{
+    auto logger = spdlog::get("main_logger");
+    if (nurseJourney.empty())
+    {
+        return true;
+    }
+    double totalTimeSpent = 0.0;
+    int totalDemand = 0;
+    for (int j = 0; j < nurseJourney.size(); j++)
+    {
+        int patientId = nurseJourney[j];
+        int previousPatientId = nurseJourney[j - 1];
+        if (j == 0)
+        {
+            totalTimeSpent += problemInstance.travelTime[0][patientId];
+        }
+        else
+        {
+            totalTimeSpent += problemInstance.travelTime[previousPatientId][patientId];
+        }
+        if (totalTimeSpent < problemInstance.patients.at(patientId).startTime)
+        {
+            totalTimeSpent = problemInstance.patients.at(patientId).startTime;
+        }
+        totalTimeSpent += problemInstance.patients.at(patientId).careTime;
+        if (totalTimeSpent > problemInstance.patients.at(patientId).endTime)
+        {
+            logger->trace("Patient {} treatment finishes too late", patientId);
+            return false;
+        }
+        totalDemand += problemInstance.patients.at(patientId).demand;
+        if (totalDemand > problemInstance.nurseCapacity)
+        {
+            logger->trace("Nurse exceeds the capacity");
+            return false;
+        }
+    }
+    // add the driving time from the last patient to the depot if there is at least one patient
+    if (nurseJourney.empty())
+    {
+        totalTimeSpent += problemInstance.travelTime[nurseJourney[nurseJourney.size() - 1]][0];
+    }
+    if (totalTimeSpent > problemInstance.depot.returnTime)
+    {
+        logger->trace("Nurse exceeds the return time");
+        return false;
+    }
+    return true;
+}
+
+auto isSolutionValid(const Genome &genome, const ProblemInstance &problemInstance) -> bool
+{
+    auto logger = spdlog::get("main_logger");
+    // validate that every patient is visited exactly once
+    std::map<int, bool> visitedPatients;
+    for (const Journey &nurseJourney : genome)
+    {
+        for (int patientId : nurseJourney)
+        {
+            if (visitedPatients[patientId])
+            {
+                logger->debug("Patient {} is visited more than once", patientId);
+                return false;
+            }
+            visitedPatients[patientId] = true;
+        }
+    }
+    // validate that every patient is visited
+    for (const auto &[id, patient] : problemInstance.patients)
+    {
+        if (!visitedPatients[id])
+        {
+            logger->debug("Patient {} is not visited", id);
+            return false;
+        }
+    }
+
+    for (int nurseId = 0; nurseId < genome.size(); nurseId++)
+    {
+        const Journey &nurseJourney = genome[nurseId];
+        if (!isJourneyValid(nurseJourney, problemInstance))
+        {
+            logger->trace("Journey of nurse {} is invalid", nurseId);
+            return false;
+        }
+    }
+    return true;
+}

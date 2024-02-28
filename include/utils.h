@@ -22,3 +22,9 @@ auto unflattenGenome(std::vector<int> flatGenome, const Genome& parent) -> Genom
 
 // Export individual to json given a Individual and a path
 auto exportIndividual(const Individual& individual, const std::string& path) -> void;
+
+// Function to check if a journey is valid
+auto isJourneyValid(const Journey &nurseJourney, const ProblemInstance &problemInstance) -> bool;
+
+// Function to check if a genome is valid
+auto isSolutionValid(const Genome &genome, const ProblemInstance &problemInstance) -> bool;

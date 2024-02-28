@@ -6,95 +6,7 @@
 #include <climits>
 #include <spdlog/spdlog.h>
 
-auto isJourneyValid(const Journey &nurseJourney, const ProblemInstance &problemInstance) -> bool
-{
-    auto logger = spdlog::get("main_logger");
-    if (nurseJourney.empty())
-    {
-        return true;
-    }
-    double totalTimeSpent = 0.0;
-    int totalDemand = 0;
-    for (int j = 0; j < nurseJourney.size(); j++)
-    {
-        int patientId = nurseJourney[j];
-        int previousPatientId = nurseJourney[j - 1];
-        if (j == 0)
-        {
-            totalTimeSpent += problemInstance.travelTime[0][patientId];
-        }
-        else
-        {
-            totalTimeSpent += problemInstance.travelTime[previousPatientId][patientId];
-        }
-        if (totalTimeSpent < problemInstance.patients.at(patientId).startTime)
-        {
-            totalTimeSpent = problemInstance.patients.at(patientId).startTime;
-        }
-        totalTimeSpent += problemInstance.patients.at(patientId).careTime;
-        if (totalTimeSpent > problemInstance.patients.at(patientId).endTime)
-        {
-            logger->debug("Patient {} treatment finishes too late", patientId);
-            return false;
-        }
-        totalDemand += problemInstance.patients.at(patientId).demand;
-        if (totalDemand > problemInstance.nurseCapacity)
-        {
-            logger->debug("Nurse exceeds the capacity");
-            return false;
-        }
-    }
-    // add the driving time from the last patient to the depot if there is at least one patient
-    if (nurseJourney.empty())
-    {
-        totalTimeSpent += problemInstance.travelTime[nurseJourney[nurseJourney.size() - 1]][0];
-    }
-    if (totalTimeSpent > problemInstance.depot.returnTime)
-    {
-        logger->debug("Nurse exceeds the return time");
-        return false;
-    }
-    return true;
-}
 
-auto isSolutionValid(const Genome &genome, const ProblemInstance &problemInstance) -> bool
-{
-    auto logger = spdlog::get("main_logger");
-    // validate that every patient is visited exactly once
-    std::map<int, bool> visitedPatients;
-    for (const Journey &nurseJourney : genome)
-    {
-        for (int patientId : nurseJourney)
-        {
-            if (visitedPatients[patientId])
-            {
-                logger->debug("Patient {} is visited more than once", patientId);
-                return false;
-            }
-            visitedPatients[patientId] = true;
-        }
-    }
-    // validate that every patient is visited
-    for (const auto &[id, patient] : problemInstance.patients)
-    {
-        if (!visitedPatients[id])
-        {
-            logger->debug("Patient {} is not visited", id);
-            return false;
-        }
-    }
-
-    for (int nurseId = 0; nurseId < genome.size(); nurseId++)
-    {
-        const Journey &nurseJourney = genome[nurseId];
-        if (!isJourneyValid(nurseJourney, problemInstance))
-        {
-            logger->debug("Journey of nurse {} is invalid", nurseId);
-            return false;
-        }
-    }
-    return true;
-}
 
 auto evaluateIndividual(Individual *individual, const ProblemInstance &problemInstance) -> void
 {
@@ -358,6 +270,7 @@ auto applyCrossover(Population &parents, CrossoverConfiguration &crossover, Prob
 
 auto applyMutation(Population &population, MuationConfiguration &mutation, ProblemInstance &problemInstance) -> Population
 {
+    auto main_logger = spdlog::get("main_logger");
     RandomGenerator &rng = RandomGenerator::getInstance();
     for (std::tuple<MutationFunction, FunctionParameters, double> mutationTuple : mutation)
     {
@@ -369,8 +282,13 @@ auto applyMutation(Population &population, MuationConfiguration &mutation, Probl
         {
             int individualIndex = rng.generateRandomInt(0, population.size() - 1);
             Individual individual = population[individualIndex];
+            main_logger->trace("Applying mutation to individual {}", individualIndex);
+            main_logger->trace("Genome before mutation: {}", fmt::join(flattenGenome(individual.genome), ", "));
+            main_logger->trace("Is genome valid: {}", isSolutionValid(individual.genome, problemInstance));
             Genome mutatedGenome = MutationFunction(individual.genome, parameters);
             Individual mutatedIndividual = {mutatedGenome};
+            main_logger->trace("Genome after mutation: {}", fmt::join(flattenGenome(individual.genome), ", "));
+            main_logger->trace("Is mutated genome valid: {}", isSolutionValid(mutatedIndividual.genome, problemInstance));
             evaluateIndividual(&mutatedIndividual, problemInstance);
             population[individualIndex] = mutatedIndividual;
         }
@@ -386,6 +304,7 @@ Individual SGA(ProblemInstance problemInstance, Config config)
 
     Population pop = initializeFeasiblePopulation(problemInstance, config);
     //Population pop = initializeRandomPopulation(problemInstance, config);
+    main_logger->info("Population initialized");
     sortPopulationByFitness(pop, false);
     logGenome(pop[0].genome, "Best", 0);
     //  check if population only contains valid solutions

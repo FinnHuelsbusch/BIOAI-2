@@ -1,8 +1,7 @@
 #pragma once
 #include "structures.h"
 
-auto isJourneyValid(const Journey &nurseJourney, const ProblemInstance &problemInstance) -> bool;
-auto isSolutionValid(const Genome &genome, const ProblemInstance &problemInstance) -> bool;
+
 auto evaluateIndividual(Individual *individual, const ProblemInstance &problemInstance) -> void;
 auto initializeRandomPopulation(const ProblemInstance &problemInstance, const Config &config) -> Population;
 auto initializeFeasiblePopulation(const ProblemInstance &problemInstance, const Config &config) -> Population;
