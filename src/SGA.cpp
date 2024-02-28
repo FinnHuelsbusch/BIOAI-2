@@ -417,18 +417,36 @@ Individual SGA(ProblemInstance problemInstance, Config config)
         std::cout << "SURV_SEL" << '\n';
         pop = config.survivorSelection.first(pop, children, config.survivorSelection.second);
 
-        // Log values after
-        sortPopulationByTravelTime(pop, false, problemInstance);
+        // calculate percentage of valid solutions
+        int validSolutions = std::count_if(pop.begin(), pop.end(), [&](const Individual &individual)
+                                          { return isSolutionValid(individual.genome, problemInstance); });
+        double percentageValid = (validSolutions / static_cast<double>(pop.size())) * 100;
+        main_logger->info("Percentage of valid solutions: {}", percentageValid);
+        statistics_logger->info("Percentage of valid solutions: {}", percentageValid);
+
         // Average fitness
+        sortPopulationByTravelTime(pop, false, problemInstance);
         double averageTravelTime = std::accumulate(pop.begin(), pop.end(), 0.0, [problemInstance](double sum, const Individual &individual)
                                                    { return sum + getTotalTravelTime(individual.genome, problemInstance); }) /
                                    pop.size();
-        main_logger->info("Best: {} Avg: {} Worst: {}", getTotalTravelTime(pop[0].genome, problemInstance), averageTravelTime, getTotalTravelTime(pop[pop.size() - 1].genome, problemInstance));
-        statistics_logger->info("Best: {} Avg: {} Worst: {}", getTotalTravelTime(pop[0].genome, problemInstance), averageTravelTime, getTotalTravelTime(pop[pop.size() - 1].genome, problemInstance));
-        std::cout << "Best: " << getTotalTravelTime(pop[0].genome, problemInstance) << " Avg: " << averageTravelTime << " Worst: " << getTotalTravelTime(pop[pop.size() - 1].genome, problemInstance) << '\n';
-        std::cout << std::endl;
-        // Log the best and reference individual
-        logGenome(pop[0].genome, "Best", currentGeneration);
+        main_logger->info("Travel Time Best: {} Avg: {} Worst: {}", getTotalTravelTime(pop[0].genome, problemInstance), averageTravelTime, getTotalTravelTime(pop[pop.size() - 1].genome, problemInstance));
+        statistics_logger->info("Travel Time Best: {} Avg: {} Worst: {}", getTotalTravelTime(pop[0].genome, problemInstance), averageTravelTime, getTotalTravelTime(pop[pop.size() - 1].genome, problemInstance));
+        std::cout << "Travel Time Best: " << getTotalTravelTime(pop[0].genome, problemInstance) << " Avg: " << averageTravelTime << " Worst: " << getTotalTravelTime(pop[pop.size() - 1].genome, problemInstance) << " Percentage of valid solutions: " << percentageValid << '\n';
+
+        // Genome logging: 
+        // Log the Genome of the fastest individual
+        logGenome(pop[0].genome, "Fastest", currentGeneration);
+        // Log the Genome of the fittest individual
+        sortPopulationByFitness(pop, false);
+        logGenome(pop[0].genome, "Fittest", currentGeneration);
+
+        // Log the fitness of the best, average and worst individual
+        double averageFitness = std::accumulate(pop.begin(), pop.end(), 0.0, [](double sum, const Individual &individual)
+                                                { return sum + individual.fitness; }) /
+                                pop.size();
+        main_logger->info("Fitness Best: {} Avg: {} Worst: {}", pop[0].fitness, averageFitness, pop[pop.size() - 1].fitness);
+        statistics_logger->info("Fitness Best: {} Avg: {} Worst: {}", pop[0].fitness, averageFitness, pop[pop.size() - 1].fitness);
+        
         main_logger->flush();
     }
     valid = isSolutionValid(pop[0].genome, problemInstance);

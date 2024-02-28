@@ -67,7 +67,7 @@ auto sortPopulationByTravelTime(Population& population, bool ascending, const Pr
 
 auto logGenome(const Genome& genome, const std::string& IndividualName, const int generation) -> void {
     auto logger = spdlog::get("statistics_logger");
-    std::string genomeString = "Name: " + IndividualName + " Generation: " + std::to_string(generation) + " Genome: [";
+    std::string genomeString = "Genome: Name: " + IndividualName + " Generation: " + std::to_string(generation) + " Genome: [";
     for (int i = 0; i < genome.size(); i++) {
         genomeString += "[";
         for (int patientID : genome[i])
