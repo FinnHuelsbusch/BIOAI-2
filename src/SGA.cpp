@@ -320,9 +320,10 @@ Individual SGA(ProblemInstance problemInstance, Config config)
         main_logger->info("The initial population contains invalid solutions");
         std::cout << "The initial population contains invalid solutions" << '\n';
     }
-    RandomGenerator &rng = RandomGenerator::getInstance();
     for (int currentGeneration = 0; currentGeneration < config.numberOfGenerations; currentGeneration++)
     {
+        main_logger->info("Generation: {}", currentGeneration);
+        statistics_logger->info("Generation: {}", currentGeneration);
         std::cout << "Generation: " << currentGeneration << '\n';
 
         // Parent selection
