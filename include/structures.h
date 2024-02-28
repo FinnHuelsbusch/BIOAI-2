@@ -49,9 +49,9 @@ struct Individual
 {
     Genome genome;
     double fitness = 0.0;
-    int missingCareTimePenality = 0;
-    int capacityPenality = 0;
-    int toLateToDepotPenality = 0;
+    double missingCareTimePenality = 0.0;
+    double capacityPenality = 0.0;
+    double toLateToDepotPenality = 0.0;
 };
 
 using Population = std::vector<Individual>;

@@ -98,16 +98,17 @@ auto isSolutionValid(const Genome &genome, const ProblemInstance &problemInstanc
 
 auto evaluateIndividual(Individual *individual, const ProblemInstance &problemInstance) -> void
 {
-    int combinedTripTime = 0;
-    int missingCareTimePenality = 0;
-    int capacityPenality = 0;
-    int toLateToDepotPenality = 0;
+    double combinedTripTime = 0;
+    double missingCareTimePenality = 0;
+    double capacityPenality = 0;
+    double toLateToDepotPenality = 0;
 
     const auto &travelTime = problemInstance.travelTime;
 
     for (const Journey &nurseJourney : individual->genome)
     {
-        int nurseTripTime = 0;
+        double nurseTripTime = 0;
+        double nurseTravelTime = 0;
         int nurseUsedCapacity = 0;
 
         for (std::size_t j = 0; j < nurseJourney.size(); j++)
@@ -118,14 +119,16 @@ auto evaluateIndividual(Individual *individual, const ProblemInstance &problemIn
             if (j == 0)
             {
                 nurseTripTime += travelTime[0][patientId];
+                nurseTravelTime += travelTime[0][patientId];
             }
             else
             {
                 nurseTripTime += travelTime[nurseJourney[j - 1]][patientId];
+                nurseTravelTime += travelTime[nurseJourney[j - 1]][patientId];
             }
 
             // If the triptime to the patient is lower than his time window, wait to the start ot the timewindow
-            nurseTripTime = std::max(nurseTripTime, problemInstance.patients.at(patientId).startTime);
+            nurseTripTime = std::max(nurseTripTime, static_cast<double>(problemInstance.patients.at(patientId).startTime));
 
             // Nurse is caring for the patient
             nurseTripTime += problemInstance.patients.at(patientId).careTime;
@@ -152,11 +155,12 @@ auto evaluateIndividual(Individual *individual, const ProblemInstance &problemIn
         if (!nurseJourney.empty())
         {
             nurseTripTime += travelTime[nurseJourney.back()][0];
+            nurseTravelTime += travelTime[nurseJourney.back()][0];
         }
 
         // add penality if we are too late to the depot
-        toLateToDepotPenality = std::max(0, nurseTripTime - problemInstance.depot.returnTime);
-        combinedTripTime += nurseTripTime;
+        toLateToDepotPenality = std::max(0.0, nurseTripTime - problemInstance.depot.returnTime);
+        combinedTripTime += nurseTravelTime;
     }
 
     double fitness = -combinedTripTime - capacityPenality * 100000 - missingCareTimePenality * 10000 - toLateToDepotPenality * 10000;
@@ -380,8 +384,8 @@ Individual SGA(ProblemInstance problemInstance, Config config)
     main_logger->info("Starting the SGA");
     auto statistics_logger = spdlog::get("statistics_logger");
 
-    //Population pop = initializeFeasiblePopulation(problemInstance, config);
-    Population pop = initializeRandomPopulation(problemInstance, config);
+    Population pop = initializeFeasiblePopulation(problemInstance, config);
+    //Population pop = initializeRandomPopulation(problemInstance, config);
     sortPopulationByFitness(pop, false);
     logGenome(pop[0].genome, "Best", 0);
     //  check if population only contains valid solutions
@@ -449,6 +453,7 @@ Individual SGA(ProblemInstance problemInstance, Config config)
         
         main_logger->flush();
     }
+    sortPopulationByFitness(pop, false);
     valid = isSolutionValid(pop[0].genome, problemInstance);
 
     double totalTravelTime = getTotalTravelTime(pop[0].genome, problemInstance);
