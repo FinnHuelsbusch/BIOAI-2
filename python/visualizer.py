@@ -124,16 +124,16 @@ def visualizeTripsOnMap(genome : List[List[int]], problem_instance : ProblemInst
 
 
 
-def read_log_file(file_path):
+def read_log_file_genome_development(file_path):
     with open(file_path, 'r') as file:
         lines = file.readlines()
     logfile_data = {}
     for i, line in enumerate(lines):
-        if '[debug] Name: ' in line:
+        if '[debug] Genome: Name: ' in line:
             thread_id = line.split('[')[2].split(']')[0]
             genome_name = line.split('Name: ')[1].split('Generation: ')[0].strip()
             generation = line.split('Generation: ')[1].split('Genome: ')[0].strip()
-            genome_string = line.split('Genome: ')[1].strip()
+            genome_string = line.split('Genome: ')[2].strip()
             # genome string to 2D list
             genome = ast.literal_eval(genome_string)
             thread_data = logfile_data.get(thread_id, {})
@@ -191,7 +191,6 @@ def visualizeAsGantChart(individual : Individual, problem_instance : ProblemInst
         data['Demand'].append(0)
     # create a dataframe
     df = pd.DataFrame(data)
-    print(df.head())
     # Declaring a figure "gnt" with size20 x 15
     fig, gnt = plt.subplots(figsize=(20, 15))
     
@@ -295,6 +294,35 @@ def animateTripsOnMap(genomes, problem_instance, filename='animation.gif'):
     # Save the animation to gif
     animation.save(filename, writer='imagemagick', fps=1)
     
+def read_log_file_individual_statistics(filepath): 
+    with open(filepath, 'r') as file: 
+        lines = file.readlines()
+    data = {}
+    for line in lines: 
+        if 'Travel Time Best: ' in line: 
+            thread_id = line.split('[')[2].split(']')[0]
+            best = float(line.split('Best: ')[1].split(' Avg:')[0])
+            avg = float(line.split('Avg: ')[1].split(' Worst:')[0])
+            worst = float(line.split('Worst: ')[1])
+            thread_data = data.get(thread_id, {"Best Travel Time": [], "Avg Travel Time": [], "Worst Travel Time": [], "Best Fitness": [], "Avg Fitness": [], "Worst Fitness": []})
+            thread_data["Best Travel Time"].append(best)
+            thread_data["Avg Travel Time"].append(avg)
+            thread_data["Worst Travel Time"].append(worst)
+            data[thread_id] = thread_data
+        elif 'Fitness Best: ' in line: 
+            thread_id = line.split('[')[2].split(']')[0]
+            best = float(line.split('Best: ')[1].split(' Avg:')[0])
+            avg = float(line.split('Avg: ')[1].split(' Worst:')[0])
+            worst = float(line.split('Worst: ')[1])
+            thread_data = data.get(thread_id, {"Best Travel Time": [], "Avg Travel Time": [], "Worst Travel Time": [], "Best Fitness": [], "Avg Fitness": [], "Worst Fitness": []})
+            thread_data["Best Fitness"].append(best)
+            thread_data["Avg Fitness"].append(avg)
+            thread_data["Worst Fitness"].append(worst)
+            data[thread_id] = thread_data
+    return data
+
+
+
 
 
 if __name__ == "__main__":
@@ -303,22 +331,39 @@ if __name__ == "__main__":
     # load the individual
     individual = Individual("solution.json")
     # visualize the individual
-    # visualizeAsGantChart(individual, problem_instance)
-    # plt.show()
-    # visualizeTripsOnMap(individual.genome, problem_instance)
-    # plt.show()
+    visualizeAsGantChart(individual, problem_instance)
+    plt.show()
+    visualizeTripsOnMap(individual.genome, problem_instance)
+    plt.show()
     # read the log file
-    logfile_data = read_log_file('./build/statistics.txt')
+    logfile_data_genome_development = read_log_file_genome_development('./build/statistics.txt')
+    logfile_data_individual_statistics = read_log_file_individual_statistics('./build/statistics.txt')
     # visualize the log file
-    keys = list(logfile_data.keys())
-    for thread_id, thread_data in logfile_data.items():
-        for genome_name, generations in thread_data.items():
-            if genome_name == 'Reference':
-                continue
-            genomes = []
-            for generation, genome in generations.items():
-                genomes.append(genome)
-            animateTripsOnMap(genomes, problem_instance, f'animation_{keys.index(thread_id)}_{genome_name}.gif')
+    keys = list(logfile_data_genome_development.keys())
+    for thread_id, thread_data in logfile_data_individual_statistics.items():
+        df = pd.DataFrame(thread_data)
+        fig, ax = plt.subplots()
+        sns.lineplot(data=df, x=df.index, y="Best Travel Time", label="Best", color="green", ax=ax)
+        sns.lineplot(data=df, x=df.index, y="Avg Travel Time", label="Avg", color="blue", ax=ax)
+        sns.lineplot(data=df, x=df.index, y="Worst Travel Time", label="Worst", color="red", ax=ax)
+        # label the axes
+        ax.set_ylabel("Travel Time")
+        # second y-axis 
+        ax2 = ax.twinx()
+        sns.lineplot(data=df, x=df.index, y="Best Fitness", label="Best", color="green", ax=ax2, linestyle='--')
+        sns.lineplot(data=df, x=df.index, y="Avg Fitness", label="Avg", color="blue", ax=ax2, linestyle='--')
+        sns.lineplot(data=df, x=df.index, y="Worst Fitness", label="Worst", color="red", ax=ax2, linestyle='--')
+        ax2.set_ylabel("Fitness")
+        plt.title(f"Thread {thread_id} - Best, Avg, Worst Fitness")
+        plt.xlabel("Generation")
+        
+        plt.show()
+    # for thread_id, thread_data in logfile_data_genome_development.items():
+    #     for genome_name, generations in thread_data.items():
+    #         genomes = []
+    #         for generation, genome in generations.items():
+    #             genomes.append(genome)
+    #         animateTripsOnMap(genomes, problem_instance, f'animation_{keys.index(thread_id)}_{genome_name}.gif')
 
                 
     
