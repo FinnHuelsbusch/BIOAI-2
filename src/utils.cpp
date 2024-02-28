@@ -188,7 +188,7 @@ auto isSolutionValid(const Genome &genome, const ProblemInstance &problemInstanc
         {
             if (visitedPatients[patientId])
             {
-                logger->debug("Patient {} is visited more than once", patientId);
+                logger->warn("Patient {} is visited more than once", patientId);
                 return false;
             }
             visitedPatients[patientId] = true;
@@ -199,7 +199,7 @@ auto isSolutionValid(const Genome &genome, const ProblemInstance &problemInstanc
     {
         if (!visitedPatients[id])
         {
-            logger->debug("Patient {} is not visited", id);
+            logger->warn("Patient {} is not visited", id);
             return false;
         }
     }
@@ -249,7 +249,7 @@ auto initLogger() -> void
         statistics_logger->set_level(spdlog::level::debug);
     #else
         logger->set_level(spdlog::level::trace);
-        statistics_logger->set_level(spdlog::level::debug);
+        statistics_logger->set_level(spdlog::level::trace);
     #endif
 
     // Register the logger
