@@ -2,6 +2,7 @@
 #include "RandomGenerator.h"
 #include <iostream>
 #include <spdlog/spdlog.h>
+#include "utils.h"
 
 auto reassignOnePatient(Genome &genome, const FunctionParameters &parameters) -> Genome
 {
@@ -69,6 +70,8 @@ auto swapBetweenJourneys(Genome &genome, const FunctionParameters &parameters) -
 
 auto insertWithinJourney(Genome &genome, const FunctionParameters &parameters) -> Genome
 {
+    auto logger = spdlog::get("main_logger");
+    logger->trace("Starting insertWithinJourney mutation");
     RandomGenerator& rng = RandomGenerator::getInstance();
     int nurse;
     do {
@@ -76,10 +79,16 @@ auto insertWithinJourney(Genome &genome, const FunctionParameters &parameters) -
     } while (genome[nurse].size() < 2);
     int patientIndex = rng.generateRandomInt(0, genome[nurse].size() - 1);
     int patient = genome[nurse][patientIndex];
-    int insertionPoint = rng.generateRandomInt(0, genome[nurse].size());
+    int insertionPoint;
+    do{
+        insertionPoint = rng.generateRandomInt(0, genome[nurse].size());
+    }while(insertionPoint == patientIndex);
+    logger->trace("Inserting patient {} at index {} in nurse {}", patient, insertionPoint, nurse);
+    logger->trace("Trip before mutation: {}", fmt::join(genome[nurse], ", "));
     // insert patient at insertion point
     genome[nurse].erase(genome[nurse].begin() + patientIndex);
     genome[nurse].insert(genome[nurse].begin() + insertionPoint, patient);
+    logger->trace("Trip after mutation: {}", fmt::join(genome[nurse], ", "));
     return genome;
 }
 
