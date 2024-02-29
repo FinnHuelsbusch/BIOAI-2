@@ -145,3 +145,57 @@ auto twoOpt(Genome &genome, const FunctionParameters &parameters) -> Genome
     }while(foundImprovement);
     return genome;
 }
+
+auto inverseJourney(Genome &genome, const FunctionParameters &parameters) -> Genome{
+    auto logger = spdlog::get("main_logger");
+    logger->trace("Starting inverseJourney mutation");
+    RandomGenerator& rng = RandomGenerator::getInstance();
+    int nurse;
+    do{
+        nurse = rng.generateRandomInt(0, genome.size() - 1);
+    }while(genome[nurse].size() < 2);
+    int start = rng.generateRandomInt(0, genome[nurse].size() - 2);
+    int end;
+    do{
+        end = rng.generateRandomInt(start + 1, genome[nurse].size() - 1);
+    }while(end == start);
+    std::reverse(genome[nurse].begin() + start, genome[nurse].begin() + end + 1);
+    return genome;
+}
+
+auto splitJourney(Genome &genome, const FunctionParameters &parameters) -> Genome{
+    auto logger = spdlog::get("main_logger");
+    logger->trace("Starting splitJourney mutation");
+    RandomGenerator& rng = RandomGenerator::getInstance();
+    int destinationNurse = -1;
+    for (int i = 0; i < genome.size(); i++){
+        if (genome[i].size() == 0){
+            destinationNurse = i;
+            break;
+        }
+    }
+    if (destinationNurse == -1){
+        logger->info("No nurse with 0 patients found --> returning original genome");
+        return genome;
+    }
+    int sourceNurse;
+    do{
+        sourceNurse = rng.generateRandomInt(0, genome.size() - 1);
+    }while(genome[sourceNurse].size() < 2);
+    // split at the longest travel time
+    double longestTravelTime = -1; 
+    int splitIndex = -1;
+    ProblemInstance problemInstance = std::get<ProblemInstance>(parameters.at("problem_instance"));
+    for (int i = 0; i < genome[sourceNurse].size() - 1; i++){
+        double travelTime = problemInstance.travelTime[genome[sourceNurse][i]][genome[sourceNurse][i+1]];
+        if (travelTime > longestTravelTime){
+            longestTravelTime = travelTime;
+            splitIndex = i;
+        }
+    }
+    Journey newJourney;
+    newJourney.insert(newJourney.begin(), genome[sourceNurse].begin() + splitIndex + 1, genome[sourceNurse].end());
+    genome[destinationNurse] = newJourney;
+    genome[sourceNurse].erase(genome[sourceNurse].begin() + splitIndex + 1, genome[sourceNurse].end());
+    return genome;
+}
