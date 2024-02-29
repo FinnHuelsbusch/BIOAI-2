@@ -83,7 +83,7 @@ auto runInParallel(ProblemInstance instance, Config config) -> Individual
 
     // Create threads to process each individual
     std::vector<std::thread> threads;
-    for (int i = 0; i < 1; ++i)
+    for (int i = 0; i < 16; ++i)
     { // Adjust num_individuals as needed
         threads.emplace_back([&]()
                              { individuals.push_back(SGA(instance, config)); });
@@ -112,39 +112,42 @@ auto main() -> int
 
     logger->info("Loggers created, starting program");
 
-    ProblemInstance problemInstance = loadInstance("train_0.json");
+    ProblemInstance problemInstance = loadInstance("train_9.json");
     RandomGenerator &rng = RandomGenerator::getInstance();
-    rng.setSeed(42);
+    rng.setSeed(4711);
 
     const int populationSize = 5000;
 
+    FunctionParameters emptyParams;
     // parent selection
-    FunctionParameters rouletteWheelSelectionConfigurationParams = {{"populationSize", populationSize}};
     FunctionParameters tournamentSelectionConfigurationParams = {{"tournamentSize", 5}};
     ParentSelectionConfiguration tournamentSelectionConfiguration = {tournamentSelection, tournamentSelectionConfigurationParams};
-    ParentSelectionConfiguration rouletteWheelSelectionConfiguration = {rouletteWheelSelection, rouletteWheelSelectionConfigurationParams};
+    ParentSelectionConfiguration rouletteWheelSelectionConfiguration = {rouletteWheelSelection, emptyParams};
     // crossover
     CrossoverConfiguration order1CrossoverConfiguration = {{order1Crossover, 0.3}};
     CrossoverConfiguration partiallyMappedCrossoverConfiguration = {{partiallyMappedCrossover, 0.2}};
     CrossoverConfiguration edgeRecombinationConfiguration = {{edgeRecombination, 0.8}};
     CrossoverConfiguration partiallyMappedCrossoverAndEdgeRecombinationConfiguration = {{partiallyMappedCrossover, 0.2}, {edgeRecombination, 0.2}};
     // mutation
-    FunctionParameters emptyParams;
+    FunctionParameters twoOptParams = {{"problem_instance", problemInstance}};
     MuationConfiguration reassignOnePatientConfiguration = {{reassignOnePatient, emptyParams, 0.01}};
     MuationConfiguration everyMutationConfiguration = {{reassignOnePatient, emptyParams, 0.01},
-                                                       {insertWithinJourney, emptyParams, 0.001},
+                                                       {insertWithinJourney, emptyParams, 0.01},
                                                        {swapBetweenJourneys, emptyParams, 0.01},
-                                                       {swapWithinJourney, emptyParams, 0.01}};
+                                                       {swapWithinJourney, emptyParams, 0.01},
+                                                       {twoOpt, twoOptParams, 0.01}};
     MuationConfiguration insertWithinJourneyConfiguration = {{insertWithinJourney, emptyParams, 0.1}};
     // survivor selection
     SurvivorSelectionConfiguration fullReplacementConfiguration = {fullReplacement, emptyParams};
-    SurvivorSelectionConfiguration rouletteWheelSurvivorSelectionConfiguration = {rouletteWheelReplacement, rouletteWheelSelectionConfigurationParams};
+    SurvivorSelectionConfiguration rouletteWheelSurvivorSelectionConfiguration = {rouletteWheelReplacement, emptyParams};
+    FunctionParameters elitismWithFillParams = {{"elitism_percentage", 0.1}, {"fillFunction", "rouletteWheel"}};
+    SurvivorSelectionConfiguration elitismWithFillConfiguration = {elitismWithFill, elitismWithFillParams};
 
-    Config config = Config(populationSize, 500, false,
+    Config config = Config(populationSize, 5000, false,
                            tournamentSelectionConfiguration,
                            partiallyMappedCrossoverAndEdgeRecombinationConfiguration,
-                           insertWithinJourneyConfiguration,
-                           rouletteWheelSurvivorSelectionConfiguration);
+                           everyMutationConfiguration,
+                           elitismWithFillConfiguration);
 
     Individual result = runInParallel(problemInstance, config);
     std::cout << "Overall Fittest individual has fitness: " << result.fitness << std::endl;

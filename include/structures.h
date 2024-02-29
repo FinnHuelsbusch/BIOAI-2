@@ -59,8 +59,8 @@ using Population = std::vector<Individual>;
 using FunctionParameters = std::map<std::string, std::variant<int, double, std::string, bool, ProblemInstance>>;
 using CrossoverFunction = std::pair<Genome, std::optional<Genome>> (*)(const Genome &, const Genome &);
 using MutationFunction = Genome (*)(Genome &, const FunctionParameters &parameters);
-using ParentSelectionFunction = Population (*)(const Population &population, const FunctionParameters &parameters);
-using SurvivorSelectionFunction = Population (*)(const Population &parents, const Population &children, const FunctionParameters &parameters);
+using ParentSelectionFunction = Population (*)(const Population &population, const FunctionParameters &parameters, const  int populationSize);
+using SurvivorSelectionFunction = Population (*)(const Population &parents, const Population &children, const FunctionParameters &parameters, const  int populationSize);
 
 using CrossoverConfiguration = std::vector<std::pair<CrossoverFunction, double>>;
 using MuationConfiguration = std::vector<std::tuple<MutationFunction, FunctionParameters &, double>>;
@@ -69,7 +69,7 @@ using SurvivorSelectionConfiguration = std::pair<SurvivorSelectionFunction, Func
 
 struct Config
 {
-    int populationSize;
+    const int populationSize;
     int numberOfGenerations;
     bool initialPopulationDistirbutePatientsEqually;
     ParentSelectionConfiguration parentSelection;
@@ -78,5 +78,5 @@ struct Config
     SurvivorSelectionConfiguration survivorSelection;
 
     // Constructor
-    Config(int populationSize, int numberOfGenerations, bool initialPopulationDistirbutePatientsEqually, ParentSelectionConfiguration parentSelection, CrossoverConfiguration crossover, MuationConfiguration mutation, SurvivorSelectionConfiguration survivorSelection) : populationSize(populationSize), numberOfGenerations(numberOfGenerations), initialPopulationDistirbutePatientsEqually(initialPopulationDistirbutePatientsEqually), parentSelection(std::move(parentSelection)), crossover(std::move(crossover)), mutation(std::move(mutation)), survivorSelection(std::move(survivorSelection)) {}
+    Config(const int populationSize, int numberOfGenerations, bool initialPopulationDistirbutePatientsEqually, ParentSelectionConfiguration parentSelection, CrossoverConfiguration crossover, MuationConfiguration mutation, SurvivorSelectionConfiguration survivorSelection) : populationSize(populationSize), numberOfGenerations(numberOfGenerations), initialPopulationDistirbutePatientsEqually(initialPopulationDistirbutePatientsEqually), parentSelection(std::move(parentSelection)), crossover(std::move(crossover)), mutation(std::move(mutation)), survivorSelection(std::move(survivorSelection)) {}
 };

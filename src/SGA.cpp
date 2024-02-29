@@ -301,6 +301,7 @@ Individual SGA(ProblemInstance problemInstance, Config config)
     auto main_logger = spdlog::get("main_logger");
     main_logger->info("Starting the SGA");
     auto statistics_logger = spdlog::get("statistics_logger");
+    const  int populationSize = config.populationSize;
 
     Population pop = initializeFeasiblePopulation(problemInstance, config);
     //Population pop = initializeRandomPopulation(problemInstance, config);
@@ -328,7 +329,7 @@ Individual SGA(ProblemInstance problemInstance, Config config)
 
         // Parent selection
         std::cout << "SEL|";
-        Population parents = config.parentSelection.first(pop, config.parentSelection.second);
+        Population parents = config.parentSelection.first(pop, config.parentSelection.second, populationSize);
 
         // Crossover
         std::cout << "CROSS|";
@@ -339,7 +340,7 @@ Individual SGA(ProblemInstance problemInstance, Config config)
 
         // Survivor selection
         std::cout << "SURV_SEL" << '\n';
-        pop = config.survivorSelection.first(pop, children, config.survivorSelection.second);
+        pop = config.survivorSelection.first(pop, children, config.survivorSelection.second, populationSize);
 
         // calculate percentage of valid solutions
         int validSolutions = std::count_if(pop.begin(), pop.end(), [&](const Individual &individual)

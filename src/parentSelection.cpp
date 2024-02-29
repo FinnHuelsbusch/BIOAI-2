@@ -5,7 +5,7 @@
 #include "utils.h"
 #include <iostream>
 
-auto rouletteWheelSelection(const Population &population, const FunctionParameters &parameters) -> Population
+auto rouletteWheelSelection(const Population &population, const FunctionParameters &parameters, const int populationSize) -> Population
 {
     Population parents;
     std::vector<double> fitnessValues;
@@ -34,9 +34,7 @@ auto rouletteWheelSelection(const Population &population, const FunctionParamete
     }
 
     RandomGenerator &rng = RandomGenerator::getInstance();
-    // Perform roulette wheel selection
-    int popSize = std::get<int>(parameters.at("populationSize"));
-    for (int i = 0; i < popSize; i++)
+    for (int i = 0; i < populationSize; i++)
     {
         double randomValue = rng.generateRandomDouble(0, 1);
         double cumulativeProbability = 0;
@@ -54,12 +52,12 @@ auto rouletteWheelSelection(const Population &population, const FunctionParamete
     return parents;
 }
 
-auto tournamentSelection(const Population &population, const FunctionParameters &parameters) -> Population
+auto tournamentSelection(const Population &population, const FunctionParameters &parameters, const int populationSize) -> Population
 {
     int tournamentSize = std::get<int>(parameters.at("tournamentSize"));
     Population parents;
     RandomGenerator &rng = RandomGenerator::getInstance();
-    for (int i = 0; i < population.size(); i++)
+    for (int i = 0; i < populationSize; i++)
     {
         std::vector<Individual> tournament;
         for (int j = 0; j < tournamentSize; j++)

@@ -327,7 +327,7 @@ def read_log_file_individual_statistics(filepath):
 
 if __name__ == "__main__":
     # load the problem instance
-    problem_instance = ProblemInstance.load_instance("train_0.json")
+    problem_instance = ProblemInstance.load_instance("train_9.json")
     # load the individual
     individual = Individual("solution.json")
     # visualize the individual
