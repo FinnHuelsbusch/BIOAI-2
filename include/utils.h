@@ -29,4 +29,11 @@ auto isJourneyValid(const Journey &nurseJourney, const ProblemInstance &problemI
 // Function to check if a genome is valid
 auto isSolutionValid(const Genome &genome, const ProblemInstance &problemInstance) -> bool;
 
+// Function to initialize the logger
 auto initLogger() -> void;
+
+// Function to calcute the cosine similarity between two Journeys
+auto euclideanDistance(const Journey &journey1, const Journey &journey2) -> double;
+
+// Function to calculate the diversity of a population
+auto calculateDiversity(const Population &population) -> double;

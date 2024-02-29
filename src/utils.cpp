@@ -5,6 +5,7 @@
 #include <fstream> 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h> 
+#include <unordered_map>
 
 
 
@@ -255,4 +256,98 @@ auto initLogger() -> void
     // Register the logger
     spdlog::register_logger(logger);
     spdlog::register_logger(statistics_logger);
+}
+
+
+
+// Function to calcute the cosine similarity between two Journeys
+auto euclideanDistance(const Journey &journey1, const Journey &journey2) -> double{
+    size_t size1 = journey1.size();
+    size_t size2 = journey2.size();
+
+    size_t maxSize = std::max(size1, size2);
+
+    double sumSquaredDifferences = 0.0;
+
+    for (size_t i = 0; i < maxSize; ++i) {
+        double value1 = (i < size1) ? journey1[i] : 0.0;
+        double value2 = (i < size2) ? journey2[i] : 0.0;
+
+        double diff = value1 - value2;
+        sumSquaredDifferences += diff * diff;
+    }
+
+    return std::sqrt(sumSquaredDifferences);
+}
+
+
+// Custom hash function for std::vector
+namespace std {
+    template <>
+    struct hash<std::vector<int>> {
+        size_t operator()(const std::vector<int>& v) const {
+            size_t hash_value = 0;
+            for (const auto& elem : v) {
+                hash_value ^= std::hash<int>{}(elem) + 0x9e3779b9 + (hash_value << 6) + (hash_value >> 2);
+            }
+            return hash_value;
+        }
+    };
+}
+
+// Hash function for std::pair
+struct pair_hash {
+    std::size_t operator () (const std::pair<const Journey&, const Journey&>& p) const {
+        auto h1 = std::hash<std::vector<int>>{}(p.first);
+        auto h2 = std::hash<std::vector<int>>{}(p.second);
+
+        // Combining hash values in a way that avoids collisions
+        return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+    }
+};
+
+std::unordered_map<std::pair<const Journey&, const Journey&>, double, pair_hash> similarityCache;
+
+auto distanceBetweenGenomes(const Genome &genomeA, const Genome &genomeB) -> double
+{
+    double distance = 0;
+    for (int i = 0; i < genomeA.size(); i++)
+    {
+        double smallestDistance = INFINITY;
+        for (int j = 0; j < genomeB.size(); j++)
+        {
+            auto cacheKey = std::make_pair(genomeA[i], genomeB[j]);
+            auto it = similarityCache.find(cacheKey);
+            double currentDistance;
+            if (it != similarityCache.end()) {
+                currentDistance = it->second;
+
+            } else{
+                double currentDistance = euclideanDistance(genomeA[i], genomeB[j]);
+                similarityCache[cacheKey] = currentDistance;
+            }
+            if (currentDistance < smallestDistance)
+            {
+                smallestDistance = currentDistance;
+                if(smallestDistance == 0){
+                    break;
+                }
+            }
+        }
+        distance += smallestDistance;
+    }
+    return distance;
+}
+
+auto calculateDiversity(const Population &population) -> double
+{
+    double diversity = 0;
+    for (int i = 0; i < population.size(); i++)
+    {
+        for (int j = i + 1; j < population.size(); j++)
+        {
+            diversity += distanceBetweenGenomes(population[i].genome, population[j].genome);
+        }
+    }
+    return diversity;
 }

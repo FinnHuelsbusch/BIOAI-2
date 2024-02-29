@@ -304,7 +304,7 @@ def read_log_file_individual_statistics(filepath):
             best = float(line.split('Best: ')[1].split(' Avg:')[0])
             avg = float(line.split('Avg: ')[1].split(' Worst:')[0])
             worst = float(line.split('Worst: ')[1])
-            thread_data = data.get(thread_id, {"Best Travel Time": [], "Avg Travel Time": [], "Worst Travel Time": [], "Best Fitness": [], "Avg Fitness": [], "Worst Fitness": []})
+            thread_data = data.get(thread_id, {"Best Travel Time": [], "Avg Travel Time": [], "Worst Travel Time": [], "Best Fitness": [], "Avg Fitness": [], "Worst Fitness": [], "Diversity": []})
             thread_data["Best Travel Time"].append(best)
             thread_data["Avg Travel Time"].append(avg)
             thread_data["Worst Travel Time"].append(worst)
@@ -314,15 +314,53 @@ def read_log_file_individual_statistics(filepath):
             best = float(line.split('Best: ')[1].split(' Avg:')[0])
             avg = float(line.split('Avg: ')[1].split(' Worst:')[0])
             worst = float(line.split('Worst: ')[1])
-            thread_data = data.get(thread_id, {"Best Travel Time": [], "Avg Travel Time": [], "Worst Travel Time": [], "Best Fitness": [], "Avg Fitness": [], "Worst Fitness": []})
+            thread_data = data.get(thread_id, {"Best Travel Time": [], "Avg Travel Time": [], "Worst Travel Time": [], "Best Fitness": [], "Avg Fitness": [], "Worst Fitness": [], "Diversity": []})
             thread_data["Best Fitness"].append(best)
             thread_data["Avg Fitness"].append(avg)
             thread_data["Worst Fitness"].append(worst)
+            data[thread_id] = thread_data
+        elif 'Diversity: ' in line: 
+            thread_id = line.split('[')[2].split(']')[0]
+            diversity = float(line.split('Diversity: ')[1])
+            thread_data = data.get(thread_id, {"Best Travel Time": [], "Avg Travel Time": [], "Worst Travel Time": [], "Best Fitness": [], "Avg Fitness": [], "Worst Fitness": [], "Diversity": []})
+            thread_data["Diversity"].append(diversity)
             data[thread_id] = thread_data
     return data
 
 
 
+
+
+def visualize_thread_data(thread_id, thread_data):
+    df = pd.DataFrame(thread_data)
+    fig, ax = plt.subplots()
+    sns.lineplot(data=df, x=df.index, y="Best Travel Time", label="Best", color="green", ax=ax)
+    sns.lineplot(data=df, x=df.index, y="Avg Travel Time", label="Avg", color="blue", ax=ax)
+    sns.lineplot(data=df, x=df.index, y="Worst Travel Time", label="Worst", color="red", ax=ax)
+        # label the axes
+    ax.set_ylabel("Travel Time")
+        # second y-axis 
+    ax2 = ax.twinx()
+    sns.lineplot(data=df, x=df.index, y="Best Fitness", label="Best", color="green", ax=ax2, linestyle='--')
+    sns.lineplot(data=df, x=df.index, y="Avg Fitness", label="Avg", color="blue", ax=ax2, linestyle='--')
+    sns.lineplot(data=df, x=df.index, y="Worst Fitness", label="Worst", color="red", ax=ax2, linestyle='--')
+    ax2.set_ylabel("Fitness")
+    plt.title(f"Thread {thread_id} - Best, Avg, Worst Fitness")
+    plt.xlabel("Generation")
+    plt.show()
+
+    # fig, ax = plt.subplots()
+    # sns.lineplot(data=df, x=df.index, y="Best Travel Time", label="Best", color="green", ax=ax)
+    # sns.lineplot(data=df, x=df.index, y="Avg Travel Time", label="Avg", color="blue", ax=ax)
+    # sns.lineplot(data=df, x=df.index, y="Worst Travel Time", label="Worst", color="red", ax=ax)
+    # ax.set_ylabel("Travel Time")
+    #     # second y-axis 
+    # ax2 = ax.twinx()
+    # sns.lineplot(data=df, x=df.index, y="Diversity", label="Diversity", color="orange", ax=ax2, linestyle='--')
+    # ax2.set_ylabel("Diversity")
+    # plt.title(f"Thread {thread_id} - Best, Avg, Worst Travel Time and Diversity")
+    # plt.xlabel("Generation")
+    # plt.show()
 
 
 if __name__ == "__main__":
@@ -341,23 +379,9 @@ if __name__ == "__main__":
     # visualize the log file
     keys = list(logfile_data_genome_development.keys())
     for thread_id, thread_data in logfile_data_individual_statistics.items():
-        df = pd.DataFrame(thread_data)
-        fig, ax = plt.subplots()
-        sns.lineplot(data=df, x=df.index, y="Best Travel Time", label="Best", color="green", ax=ax)
-        sns.lineplot(data=df, x=df.index, y="Avg Travel Time", label="Avg", color="blue", ax=ax)
-        sns.lineplot(data=df, x=df.index, y="Worst Travel Time", label="Worst", color="red", ax=ax)
-        # label the axes
-        ax.set_ylabel("Travel Time")
-        # second y-axis 
-        ax2 = ax.twinx()
-        sns.lineplot(data=df, x=df.index, y="Best Fitness", label="Best", color="green", ax=ax2, linestyle='--')
-        sns.lineplot(data=df, x=df.index, y="Avg Fitness", label="Avg", color="blue", ax=ax2, linestyle='--')
-        sns.lineplot(data=df, x=df.index, y="Worst Fitness", label="Worst", color="red", ax=ax2, linestyle='--')
-        ax2.set_ylabel("Fitness")
-        plt.title(f"Thread {thread_id} - Best, Avg, Worst Fitness")
-        plt.xlabel("Generation")
-        
-        plt.show()
+        visualize_thread_data(thread_id, thread_data)
+
+
     # for thread_id, thread_data in logfile_data_genome_development.items():
     #     for genome_name, generations in thread_data.items():
     #         genomes = []

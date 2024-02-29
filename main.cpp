@@ -83,7 +83,7 @@ auto runInParallel(ProblemInstance instance, Config config) -> Individual
 
     // Create threads to process each individual
     std::vector<std::thread> threads;
-    for (int i = 0; i < 1; ++i)
+    for (int i = 0; i < 10; ++i)
     { // Adjust num_individuals as needed
         threads.emplace_back([&]()
                              { individuals.push_back(SGA(instance, config)); });
@@ -130,20 +130,22 @@ auto main() -> int
     CrossoverConfiguration partiallyMappedCrossoverAndEdgeRecombinationConfiguration = {{partiallyMappedCrossover, 0.2}, {edgeRecombination, 0.2}};
     // mutation
     FunctionParameters emptyParams;
+    FunctionParameters twoOptParams = {{"problem_instance", problemInstance}};
     MuationConfiguration reassignOnePatientConfiguration = {{reassignOnePatient, emptyParams, 0.01}};
     MuationConfiguration everyMutationConfiguration = {{reassignOnePatient, emptyParams, 0.01},
-                                                       {insertWithinJourney, emptyParams, 0.001},
+                                                       {insertWithinJourney, emptyParams, 0.01},
                                                        {swapBetweenJourneys, emptyParams, 0.01},
-                                                       {swapWithinJourney, emptyParams, 0.01}};
+                                                       {swapWithinJourney, emptyParams, 0.01},
+                                                       {twoOpt, twoOptParams, 0.01}};
     MuationConfiguration insertWithinJourneyConfiguration = {{insertWithinJourney, emptyParams, 0.1}};
     // survivor selection
     SurvivorSelectionConfiguration fullReplacementConfiguration = {fullReplacement, emptyParams};
     SurvivorSelectionConfiguration rouletteWheelSurvivorSelectionConfiguration = {rouletteWheelReplacement, rouletteWheelSelectionConfigurationParams};
 
-    Config config = Config(populationSize, 500, false,
+    Config config = Config(populationSize, 5000, false,
                            tournamentSelectionConfiguration,
                            partiallyMappedCrossoverAndEdgeRecombinationConfiguration,
-                           insertWithinJourneyConfiguration,
+                           everyMutationConfiguration,
                            rouletteWheelSurvivorSelectionConfiguration);
 
     Individual result = runInParallel(problemInstance, config);

@@ -370,6 +370,12 @@ Individual SGA(ProblemInstance problemInstance, Config config)
                                 pop.size();
         main_logger->info("Fitness Best: {} Avg: {} Worst: {}", pop[0].fitness, averageFitness, pop[pop.size() - 1].fitness);
         statistics_logger->info("Fitness Best: {} Avg: {} Worst: {}", pop[0].fitness, averageFitness, pop[pop.size() - 1].fitness);
+
+        // std::cout << "Starting diversity calculation" << '\n';
+        // double diversity = calculateDiversity(pop);
+        // main_logger->info("Diversity: {}", diversity);
+        // statistics_logger->info("Diversity: {}", diversity);
+        // std::cout << "Diversity calculated" << '\n';
         
         main_logger->flush();
     }
