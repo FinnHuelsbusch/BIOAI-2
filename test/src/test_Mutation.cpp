@@ -492,4 +492,164 @@ TEST_F(MutationTestFixture, twoOpt_oneOptStep) {
     EXPECT_EQ(result, expectedGenome);
 }
 
+// Test inversion mutation
+TEST_F(MutationTestFixture, inverseJourney_completeJourney) {
+    Genome genome = {{1, 2, 3, 4, 5},
+                     {6, 7, 8, 9, 10}};
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0))  // nurse
+        .WillOnce(testing::Return(0))  // patient index
+        .WillOnce(testing::Return(4)); // insertion point
+
+    Genome expectedGenome = {{5, 4, 3, 2, 1}, {6, 7, 8, 9, 10}};
+    Genome result = inverseJourney(genome, {});
+    EXPECT_EQ(result, expectedGenome);
+}
+
+TEST_F(MutationTestFixture, inverseJourney_emptyJourney) {
+    Genome genome = {{},
+                     {1, 2, 3, 4, 5},
+                     {6, 7, 8, 9, 10}};
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0))  // nurse
+        .WillOnce(testing::Return(1))  // nurse resampled
+        .WillOnce(testing::Return(1))  // patient index
+        .WillOnce(testing::Return(2)); // insertion point
+
+    Genome expectedGenome = {{},
+                             {1, 3, 2, 4, 5},
+                             {6, 7, 8, 9, 10}};
+    Genome result = inverseJourney(genome, {});
+    EXPECT_EQ(result, expectedGenome);
+}
+
+TEST_F(MutationTestFixture, inverseJourney_minimumJourneyLength) {
+    Genome genome = {{1, 2},
+                     {6, 7, 8, 9, 10}};
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0))  // nurse
+        .WillOnce(testing::Return(0))  // patient index
+        .WillOnce(testing::Return(1)); // insertion point
+
+    Genome expectedGenome = {{2, 1},
+                             {6, 7, 8, 9, 10}};
+    Genome result = inverseJourney(genome, {});
+    EXPECT_EQ(result, expectedGenome);
+}
+
+
+TEST_F(MutationTestFixture, inverseJourney_onePatient) {
+    Genome genome = {{1},
+                     {6, 7, 8, 9, 10}};
+
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0))
+        .WillOnce(testing::Return(1))
+        .WillOnce(testing::Return(0))
+        .WillOnce(testing::Return(1));
+
+    Genome expectedGenome = {{1},
+                             {7, 6, 8, 9, 10}};
+    Genome result = inverseJourney(genome, {});
+    EXPECT_EQ(result, expectedGenome);
+}
+
+TEST_F(MutationTestFixture, splitJourney_NoEmptyJourneys) {
+    Genome genome = {{1, 2, 3, 4, 5},
+                     {6, 7, 8, 9, 10}};
+
+    // rng will not be called
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_)).Times(0);
+
+    Genome result = splitJourney(genome, {});
+    EXPECT_EQ(result, genome);
+}
+
+TEST_F(MutationTestFixture, splitJourney_OneEmptyJourney) {
+    Genome genome = {{0, 1, 2, 3, 4},
+                     {}};
+    ProblemInstance instance = {
+        "test", // instanceName
+        1, // numberOfNurses
+        6, // nurseCapacity
+        0.0, // benchmark
+        {0, 0, 0}, // depot
+        {}, 
+        {{0, 2, 4, 6, 4, 2},
+         {2, 0, 4, 4, 2, 4},
+         {4, 2, 0, 6, 4, 6},
+         {6, 4, 2, 0, 4, 4},
+         {4, 2, 4, 2, 0, 2},
+         {2, 4, 6, 4, 2, 0}
+    }};
+    
+
+    // rng will not be called
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0));
+
+    Genome result = splitJourney(genome, {{"problem_instance", instance}});
+    Genome expectedGenome = {{0, 1, 2}, {3, 4}};
+    EXPECT_EQ(result, expectedGenome);
+}
+
+TEST_F(MutationTestFixture, splitJourney_LastTripIsLongest) {
+    Genome genome = {{0, 1, 2, 3, 4, 5},
+                     {}};
+    ProblemInstance instance = {
+        "test", // instanceName
+        1, // numberOfNurses
+        6, // nurseCapacity
+        0.0, // benchmark
+        {0, 0, 0}, // depot
+        {}, 
+        {{0, 2, 4, 6, 4, 2},
+         {2, 0, 2, 4, 2, 4},
+         {4, 2, 0, 2, 4, 6},
+         {6, 4, 2, 0, 2, 4},
+         {4, 2, 4, 2, 0, 8},
+         {2, 4, 6, 4, 8, 0}
+    }};
+    
+
+    // rng will not be called
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0));
+
+    Genome result = splitJourney(genome, {{"problem_instance", instance}});
+    Genome expectedGenome = {{0, 1, 2, 3, 4}, {5}};
+    EXPECT_EQ(result, expectedGenome);
+}
+
+TEST_F(MutationTestFixture, splitJourney_FirstTripIsLongest) {
+    Genome genome = {{0, 1, 2, 3, 4},
+                     {}};
+    ProblemInstance instance = {
+        "test", // instanceName
+        1, // numberOfNurses
+        6, // nurseCapacity
+        0.0, // benchmark
+        {0, 0, 0}, // depot
+        {}, 
+        {{0, 8, 4, 6, 4, 2},
+         {2, 0, 4, 4, 2, 4},
+         {4, 2, 0, 6, 4, 6},
+         {6, 4, 2, 0, 4, 4},
+         {4, 2, 4, 2, 0, 2},
+         {2, 4, 6, 4, 2, 0}
+    }};
+    
+
+    // rng will not be called
+    EXPECT_CALL(mockRng, generateRandomInt(testing::_, testing::_))
+        .WillOnce(testing::Return(0));
+
+    Genome result = splitJourney(genome, {{"problem_instance", instance}});
+    Genome expectedGenome = {{0}, {1, 2, 3, 4}};
+    EXPECT_EQ(result, expectedGenome);
+}
+
 } // namespace
