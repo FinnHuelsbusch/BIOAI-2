@@ -16,8 +16,8 @@
 #include "utils.h"
 #include <functional>
 
-#include <spdlog/sinks/basic_file_sink.h> 
-#include <spdlog/spdlog.h>               
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/spdlog.h>
 
 using json = nlohmann::json;
 
@@ -98,7 +98,8 @@ auto runInParallel(ProblemInstance instance, Config config) -> Individual
     sortPopulationByFitness(individuals, false);
     for (int i = 0; i < individuals.size(); i++)
     {
-        if(isSolutionValid(individuals[i].genome, instance)){
+        if (isSolutionValid(individuals[i].genome, instance))
+        {
             return individuals[i];
         }
     }
@@ -120,7 +121,7 @@ auto main() -> int
 
     FunctionParameters emptyParams;
     // parent selection
-    FunctionParameters tournamentSelectionConfigurationParams = {{"tournamentSize", 5}};
+    FunctionParameters tournamentSelectionConfigurationParams = {{"tournamentSize", 5}, {"tournamentProbability", 0.8}};
     ParentSelectionConfiguration tournamentSelectionConfiguration = {tournamentSelection, tournamentSelectionConfigurationParams};
     ParentSelectionConfiguration rouletteWheelSelectionConfiguration = {rouletteWheelSelection, emptyParams};
     // crossover
@@ -151,12 +152,15 @@ auto main() -> int
 
     Individual result = runInParallel(problemInstance, config);
     std::cout << "Overall Fittest individual has fitness: " << result.fitness << std::endl;
-    if(isSolutionValid(result.genome, problemInstance)){
+    if (isSolutionValid(result.genome, problemInstance))
+    {
         std::cout << "Overall Fittest individual is valid" << std::endl;
-    } else {
+    }
+    else
+    {
         std::cout << "Overall Fittest individual is invalid" << std::endl;
     }
-    std::cout << "Overall Fittest individual uses " <<  100 / problemInstance.benchmark * getTotalTravelTime(result.genome, problemInstance)   << "% of the benchmarks time" << std::endl;
+    std::cout << "Overall Fittest individual uses " << 100 / problemInstance.benchmark * getTotalTravelTime(result.genome, problemInstance) << "% of the benchmarks time" << std::endl;
     logger->info("Best individual: {}", result.fitness);
     logger->info("Exporting best individual to json");
     exportIndividual(result, "./../solution.json");

@@ -55,18 +55,32 @@ auto rouletteWheelSelection(const Population &population, const FunctionParamete
 auto tournamentSelection(const Population &population, const FunctionParameters &parameters, const int populationSize) -> Population
 {
     int tournamentSize = std::get<int>(parameters.at("tournamentSize"));
+    int tournamentProbability = std::get<double>(parameters.at("tournamentProbability"));
     Population parents;
     RandomGenerator &rng = RandomGenerator::getInstance();
     for (int i = 0; i < populationSize; i++)
     {
-        std::vector<Individual> tournament;
+        std::vector<int> tournament;
+        tournament.reserve(tournamentSize);
         for (int j = 0; j < tournamentSize; j++)
         {
             int index = rng.generateRandomInt(0, population.size() - 1);
-            tournament.push_back(population[index]);
+            tournament.push_back(index);
         }
-        parents.push_back(*std::max_element(tournament.begin(), tournament.end(), [](const Individual &individualA, const Individual &individualB)
-                                           { return individualA.fitness < individualB.fitness; }));
+
+        int bestIndex = std::max_element(tournament.begin(), tournament.end(), [population](std::vector<int>::iterator indexA, std::vector<int>::iterator indexB)
+                                         { return population.at(*indexA).fitness < population.at(*indexB).fitness; });
+
+        int randNumber = rng.generateRandomDouble(0, 1);
+        if (randNumber <= tournamentProbability)
+        {
+            parents.push_back(population[bestIndex]);
+        }
+        else
+        {
+            int bestIndexIndex = std::distance(vec.begin(), bestIndex);
+            tournament.erase(bestIndexIndex)
+        }
     }
     return parents;
 }

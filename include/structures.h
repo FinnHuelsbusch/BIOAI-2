@@ -59,8 +59,8 @@ using Population = std::vector<Individual>;
 using FunctionParameters = std::map<std::string, std::variant<int, double, std::string, bool, ProblemInstance>>;
 using CrossoverFunction = std::pair<Genome, std::optional<Genome>> (*)(const Genome &, const Genome &);
 using MutationFunction = Genome (*)(Genome &, const FunctionParameters &parameters);
-using ParentSelectionFunction = Population (*)(const Population &population, const FunctionParameters &parameters, const  int populationSize);
-using SurvivorSelectionFunction = Population (*)(const Population &parents, const Population &children, const FunctionParameters &parameters, const  int populationSize);
+using ParentSelectionFunction = Population (*)(const Population &population, const FunctionParameters &parameters, const int populationSize);
+using SurvivorSelectionFunction = Population (*)(const Population &parents, const Population &children, const FunctionParameters &parameters, const int populationSize);
 
 using CrossoverConfiguration = std::vector<std::pair<CrossoverFunction, double>>;
 using MuationConfiguration = std::vector<std::tuple<MutationFunction, FunctionParameters &, double>>;

@@ -1,0 +1,6 @@
+{
+    "populationSize": 1000,
+    "generations": 1000,
+    "tournamentSize": 5,
+    
+}
