@@ -1,6 +1,26 @@
 {
     "populationSize": 1000,
     "generations": 1000,
-    "tournamentSize": 5,
-    
+    "parentSelection": {
+        "name":"tournamentSelection",
+        "tournamentSize": 5,
+        "tournamentProbability": 0.8
+    },
+    "mutations": [
+        {
+            "name": "2opt",
+            "probability": 0.01
+        }
+    ],
+    "crossovers": [
+        {
+            "name": "2opt",
+            "probability": 0.01
+        }
+    ],
+    "survivorSelection": {
+        "name":"tournamentSelection",
+        "tournamentSize": 5,
+        "tournamentProbability": 0.8
+    }
 }

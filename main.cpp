@@ -75,6 +75,28 @@ auto loadInstance(const std::string &filename) -> ProblemInstance
     return problemInstance;
 }
 
+auto loadFunctionParameters(json functionJson) -> FunctionParameters
+{
+    FunctionParameters params = {
+        {"tournamentSize", functionJson["tournamentSize"]},
+        {"tournamentProbability", functionJson["tournamentProbability"]}};
+
+    return params;
+}
+
+auto loadConfig() -> void
+{
+    std::ifstream inputFileStream("./../config.json");
+    json data = json::parse(inputFileStream);
+
+    int populationSize = data["populationSize"];
+    int generations = data["generations"];
+
+    auto params = loadFunctionParameters(data["parentSelection"]);
+
+    return;
+}
+
 auto runInParallel(ProblemInstance instance, Config config) -> Individual
 {
     // Define an array to hold the threads
@@ -150,21 +172,23 @@ auto main() -> int
                            everyMutationConfiguration,
                            elitismWithFillConfiguration);
 
-    Individual result = runInParallel(problemInstance, config);
-    std::cout << "Overall Fittest individual has fitness: " << result.fitness << std::endl;
-    if (isSolutionValid(result.genome, problemInstance))
-    {
-        std::cout << "Overall Fittest individual is valid" << std::endl;
-    }
-    else
-    {
-        std::cout << "Overall Fittest individual is invalid" << std::endl;
-    }
-    std::cout << "Overall Fittest individual uses " << 100 / problemInstance.benchmark * getTotalTravelTime(result.genome, problemInstance) << "% of the benchmarks time" << std::endl;
-    logger->info("Best individual: {}", result.fitness);
-    logger->info("Exporting best individual to json");
-    exportIndividual(result, "./../solution.json");
-    logger->info("Best individual exported to solution.json");
+    loadConfig();
+
+    // Individual result = runInParallel(problemInstance, config);
+    // std::cout << "Overall Fittest individual has fitness: " << result.fitness << std::endl;
+    // if (isSolutionValid(result.genome, problemInstance))
+    // {
+    //     std::cout << "Overall Fittest individual is valid" << std::endl;
+    // }
+    // else
+    // {
+    //     std::cout << "Overall Fittest individual is invalid" << std::endl;
+    // }
+    // std::cout << "Overall Fittest individual uses " << 100 / problemInstance.benchmark * getTotalTravelTime(result.genome, problemInstance) << "% of the benchmarks time" << std::endl;
+    // logger->info("Best individual: {}", result.fitness);
+    // logger->info("Exporting best individual to json");
+    // exportIndividual(result, "./../solution.json");
+    // logger->info("Best individual exported to solution.json");
 
     return 0;
 }
