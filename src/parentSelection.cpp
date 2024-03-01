@@ -5,6 +5,8 @@
 #include "utils.h"
 #include <iostream>
 #include <stdexcept>
+#include <spdlog/spdlog.h>
+
 
 auto rouletteWheelSelection(const Population &population, const FunctionParameters &parameters, const int populationSize) -> Population
 {
@@ -55,6 +57,7 @@ auto rouletteWheelSelection(const Population &population, const FunctionParamete
 
 auto tournamentSelection(const Population &population, const FunctionParameters &parameters, const int populationSize) -> Population
 {
+    auto mainLogger = spdlog::get("main_logger");
     // check that the parameters are present
     if (parameters.find("tournamentSize") == parameters.end() || parameters.find("tournamentProbability") == parameters.end())
     {
@@ -62,7 +65,9 @@ auto tournamentSelection(const Population &population, const FunctionParameters 
     }
 
     int tournamentSize = std::get<int>(parameters.at("tournamentSize"));
-    int tournamentProbability = std::get<double>(parameters.at("tournamentProbability"));
+    double tournamentProbability = std::get<double>(parameters.at("tournamentProbability"));
+    mainLogger->trace("TournamentSize {}", tournamentSize);
+    mainLogger->trace("TournamentProbability {}", tournamentProbability);
     Population parents;
     RandomGenerator &rng = RandomGenerator::getInstance();
     for (int i = 0; i < populationSize; i++)
@@ -85,7 +90,7 @@ auto tournamentSelection(const Population &population, const FunctionParameters 
         double randNumber = rng.generateRandomDouble(0, 1);
         if (randNumber <= tournamentProbability)
         {
-            parents.push_back(population[bestIndex]);
+            parents.push_back(population[tournament[bestIndex]]);
         }
         else
         {
