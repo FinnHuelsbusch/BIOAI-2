@@ -199,3 +199,79 @@ auto splitJourney(Genome &genome, const FunctionParameters &parameters) -> Genom
     genome[sourceNurse].erase(genome[sourceNurse].begin() + splitIndex + 1, genome[sourceNurse].end());
     return genome;
 }
+
+auto validateJourneyIfPatientIsInserted(const Journey& journey, const int patientID, const uint insertionPoint, const ProblemInstance &problemInstance) -> bool
+{
+    if(journey.empty()){
+        return true;
+    }
+    // insert patient index at insertion point
+    Journey journeyCopy = journey;
+    journeyCopy.insert(journeyCopy.begin() + insertionPoint, patientID);
+    return isJourneyValid(journeyCopy, problemInstance);
+}
+
+auto insertionHeuristic(Genome& genome, const FunctionParameters &parameters) -> Genome
+{
+
+    // get ProblemInstanceFrom parameters
+    if (parameters.find("problem_instance") == parameters.end())
+    {
+        throw std::invalid_argument("insertionHeuristic requires 'problem_instance'");
+    }
+
+    ProblemInstance problemInstance = std::get<ProblemInstance>(parameters.at("problem_instance"));
+
+    std::vector<int> flattendGenome = flattenGenome(genome);
+
+    // init empty Genome
+    Genome newGenome = std::vector<std::vector<int>>(problemInstance.numberOfNurses);
+
+    for(int patientID : flattendGenome){
+        uint minDetour = UINT_MAX;
+        uint minDetourIndex = UINT_MAX;
+        uint nurseID = UINT_MAX; 
+        // calculate minimum detour for each nurse 
+        for(int i = 0; i < genome.size(); i++){
+            Journey journey = newGenome[i];
+            if(journey.empty()){
+                minDetour = problemInstance.travelTime[0][patientID] + problemInstance.travelTime[patientID][0];
+                minDetourIndex = 0;
+                nurseID = i; 
+            }else{
+                int detour; 
+                // calculate detour if patient is inserted between first patient and depot
+                detour = problemInstance.travelTime[0][patientID] + problemInstance.travelTime[patientID][journey[0]] - problemInstance.travelTime[0][journey[0]];
+                if(detour < minDetour && validateJourneyIfPatientIsInserted(journey, patientID, 0, problemInstance)){
+                    minDetour = detour;
+                    minDetourIndex = 0;
+                }
+                // calculate detour between patients the trip back to the depot is not considered
+                for (int j = 0; j < journey.size() - 1; j++){
+                    int detour = problemInstance.travelTime[journey[j]][patientID] + problemInstance.travelTime[patientID][journey[j+1]] - problemInstance.travelTime[journey[j]][journey[j+1]];
+                    if(detour < minDetour && validateJourneyIfPatientIsInserted(journey, patientID, j+1, problemInstance)){
+                        minDetour = detour;
+                        minDetourIndex = j + 1;
+                        nurseID = i; 
+                    }
+                }
+                // calculate detour if patient is inserted between last patient and depot
+                detour = problemInstance.travelTime[journey[journey.size() - 1]][patientID] + problemInstance.travelTime[patientID][0] - problemInstance.travelTime[journey[journey.size() - 1]][0];
+                if(detour < minDetour && validateJourneyIfPatientIsInserted(journey, patientID, journey.size(), problemInstance)){
+                    minDetour = detour;
+                    minDetourIndex = journey.size();
+                    nurseID = i; 
+                }
+            }
+        }
+        if(minDetour == UINT_MAX || minDetourIndex == UINT_MAX || nurseID == UINT_MAX){
+            auto main_logger = spdlog::get("main_logger");
+            // TODO: better logging
+            main_logger->warn("No valid insert found returning original genome");
+            return genome;
+        }
+        // insert patient at selected position
+        newGenome[nurseID].insert(newGenome[nurseID].begin() + minDetourIndex, patientID);
+    }
+    return newGenome;
+}

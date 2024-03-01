@@ -10,3 +10,4 @@ auto insertWithinJourney(Genome& genome, const FunctionParameters& parameters) -
 auto twoOpt(Genome& genome, const FunctionParameters& parameters) -> Genome;
 auto inverseJourney(Genome &genome, const FunctionParameters &parameters) -> Genome;
 auto splitJourney(Genome &genome, const FunctionParameters &parameters) -> Genome;
+auto insertionHeuristic(Genome& genome, const FunctionParameters &parameters) -> Genome;
