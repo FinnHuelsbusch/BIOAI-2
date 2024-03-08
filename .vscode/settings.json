@@ -74,7 +74,8 @@
         "format": "cpp",
         "span": "cpp",
         "stdfloat": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "complex": "cpp"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": false,
     "C_Cpp.codeAnalysis.exclude": {

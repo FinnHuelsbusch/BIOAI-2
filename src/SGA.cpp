@@ -109,16 +109,19 @@ auto initializeRandomPopulation(const ProblemInstance &problemInstance, const Co
         for (int i = 0; i < problemInstance.patients.size(); i++)
         {
             int patientID = PatientIDs[i];
-            if (config.initialPopulationDistirbutePatientsEqually)
-            {
-                int nurseId = i % problemInstance.numberOfNurses;
-                genome[nurseId].push_back(patientID);
-            }
-            else
-            {
-                int nurseId = rng.generateRandomInt(0, problemInstance.numberOfNurses - 1);
-                genome[nurseId].push_back(patientID);
-            }
+            // if (config.initialPopulationDistirbutePatientsEqually)
+            // {
+            //     int nurseId = i % problemInstance.numberOfNurses;
+            //     genome[nurseId].push_back(patientID);
+            // }
+            // else
+            // {
+            //     int nurseId = rng.generateRandomInt(0, problemInstance.numberOfNurses - 1);
+            //     genome[nurseId].push_back(patientID);
+            // }
+            //TODO fix above
+            int nurseId = rng.generateRandomInt(0, problemInstance.numberOfNurses - 1);
+            genome[nurseId].push_back(patientID);
         }
         // Create the Individual
         Individual individual = {genome};
@@ -238,10 +241,10 @@ auto applyCrossover(Population &parents, CrossoverConfiguration &crossover, Prob
     }
     RandomGenerator &rng = RandomGenerator::getInstance();
 
-    for (std::pair<CrossoverFunction, double> crossoverPair : crossover)
+    for (std::tuple<CrossoverFunction, FunctionParameters, double> crossoverTuple : crossover)
     {
-        CrossoverFunction CrossoverFunction = crossoverPair.first;
-        int numberOfCrossovers = std::ceil(parents.size() * crossoverPair.second);
+        CrossoverFunction CrossoverFunction = std::get<0>(crossoverTuple);
+        int numberOfCrossovers = std::ceil(parents.size() * std::get<2>(crossoverTuple));
 
         for (int i = 0; i < numberOfCrossovers; i++)
         {
@@ -268,7 +271,7 @@ auto applyCrossover(Population &parents, CrossoverConfiguration &crossover, Prob
     return children;
 }
 
-auto applyMutation(Population &population, MuationConfiguration &mutation, ProblemInstance &problemInstance) -> Population
+auto applyMutation(Population &population, MutationConfiguration &mutation, ProblemInstance &problemInstance) -> Population
 {
     auto main_logger = spdlog::get("main_logger");
     RandomGenerator &rng = RandomGenerator::getInstance();

@@ -77,24 +77,86 @@ auto loadInstance(const std::string &filename) -> ProblemInstance
 
 auto loadFunctionParameters(json functionJson) -> FunctionParameters
 {
-    FunctionParameters params = {
-        {"tournamentSize", functionJson["tournamentSize"]},
-        {"tournamentProbability", functionJson["tournamentProbability"]}};
-
+    FunctionParameters params;
+    for (const auto &entry : functionJson.items())
+    {
+        // ignore when key is 'name' or 'probability'
+        if (entry.key() == "name" || entry.key() == "probability")
+        {
+            continue;
+        }
+        const auto &value = entry.value();
+        if (value.is_number_integer())
+        {
+            params.insert({entry.key(), value.get<int>()});
+        }
+        else if (value.is_number_float())
+        {
+            params.insert({entry.key(), value.get<double>()});
+        }
+        else if (value.is_string())
+        {
+            params.insert({entry.key(), value.get<std::string>()});
+        }
+        else if (value.is_boolean())
+        {
+            params.insert({entry.key(), value.get<bool>()});
+        }
+    }
     return params;
 }
 
-auto loadConfig() -> void
+auto loadConfig(Config* configptr) -> void
 {
+    auto mainLogger = spdlog::get("main_logger");
+    mainLogger->info("Loading config from ./../config.json");
     std::ifstream inputFileStream("./../config.json");
     json data = json::parse(inputFileStream);
 
+    
     int populationSize = data["populationSize"];
-    int generations = data["generations"];
+    int numberOfGenerations = data["numberOfGenerations"];
+    FunctionParameters parentSelectionParameters = loadFunctionParameters(data["parentSelection"]);
+    ParentSelectionFunction parentSelection = parentSelectionFunctions.at(data["parentSelection"]["name"]);
+    ParentSelectionConfiguration parentSelectionConfiguration = {parentSelection, parentSelectionParameters};
 
-    auto params = loadFunctionParameters(data["parentSelection"]);
+    MutationConfiguration mutations = {};
+    for (const auto &entry : data["mutations"])
+    {
+        const auto &mutation = entry;
+        MutationFunction function = mutationFunctions.at(mutation["name"]);
+        FunctionParameters params = loadFunctionParameters(mutation);
+        double probability = mutation["probability"];
+        mutations.push_back({function, params, probability});
+    }
 
-    return;
+    CrossoverConfiguration crossoverConfigurations = {};
+    for (const auto &entry : data["crossovers"])
+    {
+        const auto &crossover = entry;
+        CrossoverFunction function = crossoverFunctions.at(crossover["name"]);
+        FunctionParameters params = loadFunctionParameters(crossover);
+        double probability = crossover["probability"];
+        crossoverConfigurations.push_back({function, params, probability});
+    }
+    
+
+
+
+    FunctionParameters survivorSelectionParameters = loadFunctionParameters(data["survivorSelection"]);
+    SurvivorSelectionFunction survivorSelection = survivorSelectionFunctions.at(data["survivorSelection"]["name"]);
+    SurvivorSelectionConfiguration survivorSelectionConfiguration = {survivorSelection, survivorSelectionParameters};
+    
+    configptr->populationSize = populationSize;
+    configptr->numberOfGenerations = numberOfGenerations;
+    configptr->parentSelection = parentSelectionConfiguration;
+    configptr->mutation = mutations;
+    configptr->crossover = crossoverConfigurations;
+    configptr->survivorSelection = survivorSelectionConfiguration;
+
+
+
+    std::cout << configptr->populationSize << std::endl;
 }
 
 auto runInParallel(ProblemInstance instance, Config config) -> Individual
@@ -131,66 +193,41 @@ auto runInParallel(ProblemInstance instance, Config config) -> Individual
 auto main() -> int
 {
     initLogger();
+    class Config {
+    public:
+        Config() = default; // Add default constructor
+        // Rest of the class definition
+    };
+
     auto logger = spdlog::get("main_logger");
 
     logger->info("Loggers created, starting program");
 
     ProblemInstance problemInstance = loadInstance("train_9.json");
+    Config* configptr = new Config();
+    loadConfig(configptr);
+    std::cout << configptr->populationSize << std::endl;
+
+
     RandomGenerator &rng = RandomGenerator::getInstance();
     rng.setSeed(4711);
 
-    const int populationSize = 500;
 
-    FunctionParameters emptyParams;
-    // parent selection
-    FunctionParameters tournamentSelectionConfigurationParams = {{"tournamentSize", 5}, {"tournamentProbability", 0.8}};
-    ParentSelectionConfiguration tournamentSelectionConfiguration = {tournamentSelection, tournamentSelectionConfigurationParams};
-    ParentSelectionConfiguration rouletteWheelSelectionConfiguration = {rouletteWheelSelection, emptyParams};
-    // crossover
-    CrossoverConfiguration order1CrossoverConfiguration = {{order1Crossover, 0.3}};
-    CrossoverConfiguration partiallyMappedCrossoverConfiguration = {{partiallyMappedCrossover, 0.2}};
-    CrossoverConfiguration edgeRecombinationConfiguration = {{edgeRecombination, 0.8}};
-    CrossoverConfiguration partiallyMappedCrossoverAndEdgeRecombinationConfiguration = {{partiallyMappedCrossover, 0.2}, {edgeRecombination, 0.2}};
-    // mutation
-    FunctionParameters twoOptParams = {{"problem_instance", problemInstance}};
-    MuationConfiguration reassignOnePatientConfiguration = {{reassignOnePatient, emptyParams, 0.01}};
-    MuationConfiguration everyMutationConfiguration = {{reassignOnePatient, emptyParams, 0.01},
-                                                       {insertWithinJourney, emptyParams, 0.01},
-                                                       {swapBetweenJourneys, emptyParams, 0.01},
-                                                       {swapWithinJourney, emptyParams, 0.01},
-                                                       {insertionHeuristic, twoOptParams, 0.85},
-                                                       //{twoOpt, twoOptParams, 0.01}
-                                                       };
-    MuationConfiguration insertWithinJourneyConfiguration = {{insertWithinJourney, emptyParams, 0.1}};
-    // survivor selection
-    SurvivorSelectionConfiguration fullReplacementConfiguration = {fullReplacement, emptyParams};
-    SurvivorSelectionConfiguration rouletteWheelSurvivorSelectionConfiguration = {rouletteWheelReplacement, emptyParams};
-    FunctionParameters elitismWithFillParams = {{"elitism_percentage", 0.1}, {"fillFunction", "rouletteWheel"}};
-    SurvivorSelectionConfiguration elitismWithFillConfiguration = {elitismWithFill, elitismWithFillParams};
-
-    Config config = Config(populationSize, 1000, false,
-                           tournamentSelectionConfiguration,
-                           partiallyMappedCrossoverAndEdgeRecombinationConfiguration,
-                           everyMutationConfiguration,
-                           elitismWithFillConfiguration);
-
-    loadConfig();
-
-    // Individual result = runInParallel(problemInstance, config);
-    // std::cout << "Overall Fittest individual has fitness: " << result.fitness << std::endl;
-    // if (isSolutionValid(result.genome, problemInstance))
-    // {
-    //     std::cout << "Overall Fittest individual is valid" << std::endl;
-    // }
-    // else
-    // {
-    //     std::cout << "Overall Fittest individual is invalid" << std::endl;
-    // }
-    // std::cout << "Overall Fittest individual uses " << 100 / problemInstance.benchmark * getTotalTravelTime(result.genome, problemInstance) << "% of the benchmarks time" << std::endl;
-    // logger->info("Best individual: {}", result.fitness);
-    // logger->info("Exporting best individual to json");
-    // exportIndividual(result, "./../solution.json");
-    // logger->info("Best individual exported to solution.json");
-
+    Individual result = runInParallel(problemInstance, *configptr);
+    std::cout << "Overall Fittest individual has fitness: " << result.fitness << std::endl;
+    if (isSolutionValid(result.genome, problemInstance))
+    {
+        std::cout << "Overall Fittest individual is valid" << std::endl;
+    }
+    else
+    {
+        std::cout << "Overall Fittest individual is invalid" << std::endl;
+    }
+    std::cout << "Overall Fittest individual uses " << 100 / problemInstance.benchmark * getTotalTravelTime(result.genome, problemInstance) << "% of the benchmarks time" << std::endl;
+    logger->info("Best individual: {}", result.fitness);
+    logger->info("Exporting best individual to json");
+    exportIndividual(result, "./../solution.json");
+    logger->info("Best individual exported to solution.json");
+    delete configptr;
     return 0;
 }

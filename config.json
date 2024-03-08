@@ -1,26 +1,46 @@
 {
-    "populationSize": 1000,
-    "generations": 1000,
+    "populationSize": 500,
+    "numberOfGenerations": 1000,
     "parentSelection": {
-        "name":"tournamentSelection",
+        "name": "tournamentSelection",
         "tournamentSize": 5,
         "tournamentProbability": 0.8
     },
-    "mutations": [
-        {
-            "name": "2opt",
-            "probability": 0.01
-        }
-    ],
     "crossovers": [
         {
-            "name": "2opt",
+            "name": "partiallyMappedCrossover",
+            "probability": 0.2
+        },
+        {
+            "name": "edgeRecombination",
+            "probability": 0.2
+        }
+    ],
+    "mutations": [
+        {
+            "name": "reassignOnePatient",
             "probability": 0.01
+        },
+        {
+            "name": "insertWithinJourney",
+            "probability": 0.01
+        },
+        {
+            "name": "swapBetweenJourneys",
+            "probability": 0.01
+        },
+        {
+            "name": "swapWithinJourney",
+            "probability": 0.01
+        },
+        {
+            "name": "insertionHeuristic",
+            "probability": 0.85
         }
     ],
     "survivorSelection": {
-        "name":"tournamentSelection",
-        "tournamentSize": 5,
-        "tournamentProbability": 0.8
+        "name": "elitismWithFill",
+        "elitism_percentage": 0.1,
+        "fillFunction": "rouletteWheel"
     }
 }

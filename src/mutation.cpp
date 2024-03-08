@@ -163,7 +163,7 @@ auto inverseJourney(Genome &genome, const FunctionParameters &parameters) -> Gen
     return genome;
 }
 
-auto splitJourney(Genome &genome, const FunctionParameters &parameters) -> Genome{
+auto hdsplitJourney(Genome &genome, const FunctionParameters &parameters) -> Genome{
     auto logger = spdlog::get("main_logger");
     logger->trace("Starting splitJourney mutation");
     RandomGenerator& rng = RandomGenerator::getInstance();
